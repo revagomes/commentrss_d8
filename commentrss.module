@@ -29,6 +29,8 @@ function commentrss_feed_site() {
 // Provides a comment feed for nodes in a vocabulary
 // For the master link in the RSS feed to work, you need vocabulary_list.module!
 function commentrss_feed_vocab() {
+  global $base_url;
+  
   $vid = arg(2);
   if (is_numeric($vid)) {
     
@@ -45,9 +47,12 @@ function commentrss_feed_vocab() {
     $items = commentrss_format_items('nid IN (' . join(', ', $nids) . ')');
     $vocab = taxonomy_get_vocabulary($vid);
     
+    // We can link to a specific page if vocabulary listing is present
+    $link = (module_exist('vocabulary_list') ? url("taxonomy/page/vocab/$vid", NULL, NULL, TRUE) : $base_url);
+    
     $channel = array(
       'title'       => variable_get('site_name', 'drupal') .' - '. $vocab->name .' - '. t('Comments'),
-      'link'        => url("taxonomy/page/vocab/$vid", NULL, NULL, TRUE),
+      'link'        => $link,
       'description' => t('Comments for "%title"', array("%title" => $vocab->name)),
     );
     
