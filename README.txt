@@ -1,4 +1,4 @@
-Drupal commentrss.module README
+Drupal commentrss.module README.txt
 ==============================================================================
 
 This module adds comment RSS serving capabilties to Drupal, which is
