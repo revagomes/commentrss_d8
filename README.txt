@@ -9,6 +9,7 @@ feeds for the following points:
   - per vocabulary feeds
   - per term feeds
   - per node feeds
+  - per node type feeds
   
 This module might also be handy as an alternative to subscriptions, since
 your users don't need to provide their email addresses, but still can follow
@@ -16,12 +17,16 @@ discussion on forums and other nodes. Due to the limited capabilities of RSS,
 threading and such is not preserved, the comments are listed in reversed
 time order.
 
-Note that this module needs vocabulary_list.module in order to not print
-broken links to vocabulary listing pages, since this type of service is
-not provided by Drupal core.
+Note that this module needs vocabulary_list.module in order to print
+channel links in vocabulary listing feeds, since this type of service is
+not provided by Drupal core. Per node type listing pages are not
+available, so there are no channel links printed in that case.
 
 This module does not provide automatic links to the comment feeds anywhere,
 neither in the HTML head, nor on the user interface. Suggestions are welcome!
+
+IMPORTANT: This module is not yet ready to cope with 
+           node level permissions. Help is welcome!
   
 Installation
 ------------------------------------------------------------------------------
@@ -30,7 +35,7 @@ Installation
   - Copy commentrss.module to modules/
   - Enable the module as usual from Drupal's admin pages.
   
- Required (if you would not like to have broken vocabulary links in feeds):
+ Required (if you would not like to have nice vocabulary links in feeds):
   - Get vocabulary_list module and install as documented
  
 Credits / Contact
