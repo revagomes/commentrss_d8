@@ -5,11 +5,11 @@ This module adds comment RSS serving capabilties to Drupal, which is
 suitable for some tracking of comments for your users. The module adds
 feeds for the following points:
 
-  - complete site feed
-  - per vocabulary feeds
-  - per term feeds
-  - per node feeds
-  - per node type feeds
+  - complete site feed               /crss
+  - per vocabulary feeds         eg. /crss/vocab/13
+  - per term feeds               eg. /crss/term/14
+  - per node feeds               eg. /crss/node/12
+  - per node type feeds          eg. /crss/nodetype/story
   
 This module might also be handy as an alternative to subscriptions, since
 your users don't need to provide their email addresses, but still can follow
