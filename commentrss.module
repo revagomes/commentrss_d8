@@ -200,7 +200,7 @@ function commentrss_format_items($nodeselector = NULL) {
   $comments = db_query_range("SELECT cid, nid, subject, comment, timestamp FROM {comments} WHERE status = 0 $nodeselector ORDER BY timestamp DESC", 0, 15);
     
   while ($comment = db_fetch_object($comments)) {
-    $link = url("node/view/{$comment->nid}", NULL, "comment-{$comment->cid}", TRUE);
+    $link = url("node/{$comment->nid}", NULL, "comment-{$comment->cid}", TRUE);
     $items .= format_rss_item($comment->subject, $link, $comment->comment, array('pubDate' => date('r', $comment->timestamp)));
   }
   return $items;
