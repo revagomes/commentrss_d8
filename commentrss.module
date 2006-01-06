@@ -1,25 +1,55 @@
 <?php
 // $Id$
 
-function commentrss_help($section="admin/modules#description") {
+function commentrss_help($section = "admin/modules#description") {
   if ($section == "admin/modules#description") {
     return t('Provides RSS feeds for comments');
   }
 }
 
 function commentrss_menu($may_cache) {
-  $items = array();
   if ($may_cache) {
     $items[] = array('path' => 'crss', 'title' => '',
       'callback' => 'commentrss_handler',
       'access' => user_access('access content'),
       'type' => MENU_CALLBACK);
   }
+  else {
+    drupal_add_link(array('rel' => 'alternate',
+                          'type' => 'application/rss+xml',
+                          'title' => 'All comments',
+                          'href' => url('crss', NULL, NULL, TRUE)));
+    if (arg(0) == 'taxonomy' && arg(1) == 'vocabulary') {
+      // vocabulary_list module is serving this page - http://drupal.org/project/vocabulary_list
+      drupal_add_link(array('rel' => 'alternate',
+                          'type' => 'application/rss+xml',
+                          'title' => 'All comments',
+                          'href' => url('crss/vocab/'. arg(2), NULL, NULL, TRUE)));
+    }
+    elseif (arg(0) == 'taxonomy' && arg(1) == 'term') {
+      drupal_add_link(array('rel' => 'alternate',
+                          'type' => 'application/rss+xml',
+                          'title' => 'Comments on this taxonomy term',
+                          'href' => url('crss/term/'. arg(2), NULL, NULL, TRUE)));
+    }
+    elseif (arg(0) == 'node' && is_numeric(arg(1))) {
+      $node = node_load(array('nid' => arg(1)));
+      if ($node->nid) {
+        drupal_add_link(array('rel' => 'alternate',
+                              'type' => 'application/rss+xml',
+                              'title' => "Comments for $node->title",
+                              'href' => url('crss/node/'. arg(1), NULL, NULL, TRUE)));
+        drupal_add_link(array('rel' => 'alternate',
+                              'type' => 'application/rss+xml',
+                              'title' => "Comments for all *$node->type* posts",
+                              'href' => url('crss/nodetype/'. $node->type, NULL, NULL, TRUE)));
+      }
+    }
+  }
   return $items;
 }
 
-function commentrss_handler() {
-  $type = arg(1);
+function commentrss_handler($type = NULL) {
   if ($type) {
     if (in_array($type, array('node', 'term', 'vocab', 'nodetype'))) {
       if (call_user_func('commentrss_feed_' . $type)) {
@@ -52,7 +82,7 @@ function commentrss_feed_vocab() {
     
     // Get nids for this term
     $nids = array();
-    $result = db_query("SELECT DISTINCT(n.nid) FROM {node} n INNER JOIN {term_node} r ON n.nid = r.nid INNER JOIN {term_data} d ON r.tid = d.tid WHERE d.vid = %d AND n.status = '1'", $vid);
+    $result = db_query(db_rewrite_sql("SELECT DISTINCT(n.nid) FROM {node} n INNER JOIN {term_node} r ON n.nid = r.nid INNER JOIN {term_data} d ON r.tid = d.tid WHERE d.vid = %d AND n.status = '1'"), $vid);
     while ($node = db_fetch_object($result)) {
       $nids[] = $node->nid;
     }
@@ -84,8 +114,9 @@ function commentrss_feed_term() {
   if (is_numeric($tid)) {
     
     // Get nids for this term
+    // TODO: use taxonomy_select_nodes() instead of custom query 
     $nids = array();
-    $result = db_query("SELECT DISTINCT(n.nid) FROM {node} n INNER JOIN {term_node} r ON n.nid = r.nid WHERE r.tid = %d AND n.status = '1'", $tid);
+    $result = db_query(db_rewrite_sql("SELECT DISTINCT(n.nid) FROM {node} n INNER JOIN {term_node} r ON n.nid = r.nid WHERE r.tid = %d AND n.status = '1'"), $tid);
     while ($node = db_fetch_object($result)) {
       $nids[] = $node->nid;
     }
@@ -115,12 +146,13 @@ function commentrss_feed_node() {
   
   $nid = arg(2);
   if (is_numeric($nid)) {
+    // TODO: this changed for 4.7. remove array() to improve caching
     $node = node_load(array('nid' => $nid));
     
     // No node found for this ID
     if (!$node) { return FALSE; }
 
-    $items = commentrss_format_items("nid = $nid");
+    $items = commentrss_format_items("n.nid = ". db_escape_string($nid));
     $link = url("node/$nid", NULL, NULL, TRUE);
     $items .= format_rss_item($node->title, $link, ($node->teaser ? $node->teaser : $node->body), array('pubDate' => date('r', $node->changed)));
     
@@ -143,7 +175,7 @@ function commentrss_feed_nodetype() {
     
     // Get nids for this node type
     $nids = array();
-    $result = db_query("SELECT nid FROM {node} WHERE type = '%s' AND status = '1'", $type);
+    $result = db_query(db_rewrite_sql("SELECT nid FROM {node} WHERE type = '%s' AND status = '1'"), $type);
     while ($node = db_fetch_object($result)) {
       $nids[] = $node->nid;
     }
@@ -152,6 +184,7 @@ function commentrss_feed_nodetype() {
     if (!count($nids)) { return FALSE; }
     
     $items = commentrss_format_items('nid IN (' . join(', ', $nids) . ')');
+    // TODO: this API has changed
     $typename = node_invoke($type, 'node_name');
     
     $channel = array(
@@ -197,8 +230,8 @@ function commentrss_format_items($nodeselector = NULL) {
   $items = '';
   $nodeselector = ((isset($nodeselector) && strlen($nodeselector)) ? "AND $nodeselector" : '');
   
-  $comments = db_query_range("SELECT cid, nid, subject, comment, timestamp FROM {comments} WHERE status = 0 $nodeselector ORDER BY timestamp DESC", 0, 15);
-    
+  $sql = db_rewrite_sql("SELECT cid, n.nid, subject, c.comment, timestamp FROM {comments} c INNER JOIN {node} n ON c.nid = n.nid WHERE n.status = 1 AND c.status = %d $nodeselector ORDER BY timestamp DESC", 'comment', 'cid');
+  $comments = db_query_range($sql, COMMENT_PUBLISHED, 0, 15);
   while ($comment = db_fetch_object($comments)) {
     $link = url("node/{$comment->nid}", NULL, "comment-{$comment->cid}", TRUE);
     $items .= format_rss_item($comment->subject, $link, $comment->comment, array('pubDate' => date('r', $comment->timestamp)));
