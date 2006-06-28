@@ -17,17 +17,14 @@ discussion on forums and other nodes. Due to the limited capabilities of RSS,
 threading and such is not preserved, the comments are listed in reversed
 time order.
 
-Note that this module needs vocabulary_list.module in order to print
-channel links in vocabulary listing feeds, since this type of service is
-not provided by Drupal core. Per node type listing pages are not
-available, so there are no channel links printed in that case.
+Note that this module can optionaly work with vocabulary_list.module in 
+order to print channel links in vocabulary listing feeds, since this type 
+of service is not provided by Drupal core. You don't need to install
+vocabulary_list.module to use commentrss though.
 
-This module does not provide automatic links to the comment feeds anywhere,
-neither in the HTML head, nor on the user interface. Suggestions are welcome!
+Per node type listing pages are not available in Drupal in any known
+custom module, so there are no direct channel links printed in that case.
 
-IMPORTANT: This module is not yet ready to cope with 
-           node level permissions. Help is welcome!
-  
 Installation
 ------------------------------------------------------------------------------
  
@@ -35,19 +32,18 @@ Installation
   - Copy commentrss.module to modules/
   - Enable the module as usual from Drupal's admin pages.
   
- Required (if you would not like to have nice vocabulary links in feeds):
+ Optional (if you would like to have nice vocabulary links in feeds):
   - Get vocabulary_list module and install as documented
  
 Credits / Contact
 ------------------------------------------------------------------------------
 
 This module was created by Gabor Hojtsy (goba[at]php.net), who is also
-the active maintainer.
+the active maintainer. Moshe Weitzman provided several fixes and improvements.
 
 TODO
 ------------------------------------------------------------------------------
 
- - Put <link> tags into the HTML output if the user is on a page for which
-   we provide RSS feeds
- - Either export a block with az XML/RSS button or try to hook into the
-   syndication block provided by Drupal core
+ - Either export a block with an XML/RSS button or try to hook into the
+   syndication block provided by Drupal core or hook up with syndication
+   module
