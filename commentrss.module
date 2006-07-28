@@ -210,7 +210,7 @@ function commentrss_feed_nodetype() {
     
     // Get nids for this node type
     $nids = array();
-    $result = db_query(db_rewrite_sql("SELECT nid FROM {node} WHERE type = '%s' AND status = '1'"), $type);
+    $result = db_query(db_rewrite_sql("SELECT n.nid FROM {node} n WHERE n.type = '%s' AND n.status = 1"), $type);
     while ($node = db_fetch_object($result)) {
       $nids[] = $node->nid;
     }
@@ -220,8 +220,9 @@ function commentrss_feed_nodetype() {
     
     $items = commentrss_format_items('n.nid IN (' . join(', ', $nids) . ')');
     
+    $typename = node_get_name($type);
     $channel = array(
-      'title'       => variable_get('site_name', 'drupal') .' - '. check_plain(node_get_name($type)) .' - '. t('Comments'),
+      'title'       => variable_get('site_name', 'drupal') .' - '. check_plain($typename) .' - '. t('Comments'),
       // no module provides a page for this type of listing
       //'link'        => url("nodesbytype/$type", NULL, NULL, TRUE),
       'description' => t('Comments for "%type"', array("%type" => $typename)),
