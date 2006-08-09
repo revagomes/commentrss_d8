@@ -278,7 +278,7 @@ function commentrss_format_items($nodeselector = NULL) {
     }
     $extra = array(array('key' => 'pubDate', 'value' => date('r', $comment->timestamp)), array('key' => 'dc:creator', 'value' => $comment->name), array('key' => 'guid', 'value' => 'comment ' . $comment->cid . ' at ' . $base_url, 'attributes' => array('isPermaLink' => 'false')));
     $link = url("node/{$comment->nid}", NULL, "comment-{$comment->cid}", TRUE);
-    $items .= format_rss_item($comment->subject, $link, $comment->comment, $extra);
+    $items .= format_rss_item($comment->subject, $link, check_markup($comment->comment, $comment->format, FALSE), $extra);
   }
   return $items;
 }
