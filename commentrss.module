@@ -265,7 +265,7 @@ function commentrss_format_items($nodeselector = NULL) {
   $items = '';
   $nodeselector = ((isset($nodeselector) && strlen($nodeselector)) ? "AND $nodeselector" : '');
   
-  $sql = db_rewrite_sql("SELECT c.cid, n.nid, c.subject, c.comment, c.timestamp, c.uid, c.name FROM {comments} c INNER JOIN {node} n ON c.nid = n.nid WHERE n.status = 1 AND c.status = %d $nodeselector ORDER BY c.timestamp DESC", 'comment', 'cid');
+  $sql = db_rewrite_sql("SELECT c.cid, n.nid, c.subject, c.comment, c.timestamp, c.uid, c.name FROM {comments} c INNER JOIN {node} n ON c.nid = n.nid WHERE n.status = 1 AND c.status = %d $nodeselector ORDER BY c.timestamp DESC", 'comments', 'cid');
   $comments = db_query_range($sql, COMMENT_PUBLISHED, 0, 15);
   while ($comment = db_fetch_object($comments)) {
     if ($comment->uid) {
