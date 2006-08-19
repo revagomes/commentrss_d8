@@ -67,7 +67,7 @@ function commentrss_handler($type = NULL) {
 
 // Provides a comment feed for the complete Drupal site (ie. all nodes)
 function commentrss_feed_site() {
-  $items = commentrss_format_items();
+  $items = commentrss_format_items('n.nid');
   commentrss_format_feed($items);
   return TRUE;
 }
@@ -80,17 +80,7 @@ function commentrss_feed_vocab() {
   $vid = arg(2);
   if (is_numeric($vid)) {
     
-    // Get nids for this term
-    $nids = array();
-    $result = db_query(db_rewrite_sql("SELECT DISTINCT(n.nid) FROM {node} n INNER JOIN {term_node} r ON n.nid = r.nid INNER JOIN {term_data} d ON r.tid = d.tid WHERE d.vid = %d AND n.status = 1"), $vid);
-    while ($node = db_fetch_object($result)) {
-      $nids[] = $node->nid;
-    }
-    
-    // No relevant nids found for this vocabulary
-    if (!count($nids)) { return FALSE; }
-    
-    $items = commentrss_format_items('n.nid IN (' . join(', ', $nids) . ')');
+    $items = commentrss_format_items('DISTINCT(n.nid)', 'INNER JOIN {term_node} r ON n.nid = r.nid INNER JOIN {term_data} d ON r.tid = d.tid', 'd.vid = %d AND', $vid);
     $vocab = taxonomy_get_vocabulary($vid);
     
     // We can link to a specific page if vocabulary listing is present
@@ -113,18 +103,7 @@ function commentrss_feed_term() {
   $tid = arg(2);
   if (is_numeric($tid)) {
     
-    // Get nids for this term
-    $nids = array();
-    // We are not using taxonomy_select_nodes() because of its 'feed_default_items' limit
-    $result = db_query(db_rewrite_sql("SELECT DISTINCT(n.nid) FROM {node} n INNER JOIN {term_node} r ON n.nid = r.nid WHERE r.tid = %d AND n.status = 1"), $tid);
-    while ($node = db_fetch_object($result)) {
-      $nids[] = $node->nid;
-    }
-    
-    // No relevant nids found for this term
-    if (!count($nids)) { return FALSE; }
-    
-    $items = commentrss_format_items('n.nid IN (' . join(', ', $nids) . ')');
+    $items = commentrss_format_items('DISTINCT(n.nid)', 'INNER JOIN {term_node} r ON n.nid = r.nid', 'r.tid = %d AND', $tid);
     $term = taxonomy_get_term($tid);
     
     $channel = array(
@@ -151,7 +130,7 @@ function commentrss_feed_node() {
       return FALSE;
     }
 
-    $items = commentrss_format_items("n.nid = ". db_escape_string($nid));
+    $items = commentrss_format_items('n.nid', '', 'n.nid = %d AND', $nid);
     $link = url("node/$nid", NULL, NULL, TRUE);
 
     // COPIED from node_feed() start
@@ -208,21 +187,11 @@ function commentrss_feed_nodetype() {
   $type = arg(2);
   if (preg_match("!^[a-z0-9-]+$!", $type)) {
     
-    // Get nids for this node type
-    $nids = array();
-    $result = db_query(db_rewrite_sql("SELECT n.nid FROM {node} n WHERE n.type = '%s' AND n.status = 1"), $type);
-    while ($node = db_fetch_object($result)) {
-      $nids[] = $node->nid;
-    }
+    $items = commentrss_format_items('n.nid', '', "n.type = '%s' AND", $type);
     
-    // No relevant nids found for this node type
-    if (!count($nids)) { return FALSE; }
-    
-    $items = commentrss_format_items('n.nid IN (' . join(', ', $nids) . ')');
-    
-    $typename = node_get_name($type);
+    $typename = check_plain(node_get_name($type));
     $channel = array(
-      'title'       => variable_get('site_name', 'drupal') .' - '. check_plain($typename) .' - '. t('Comments'),
+      'title'       => variable_get('site_name', 'drupal') .' - '. $typename .' - '. t('Comments'),
       // no module provides a page for this type of listing
       //'link'        => url("nodesbytype/$type", NULL, NULL, TRUE),
       'description' => t('Comments for "%type"', array("%type" => $typename)),
@@ -259,14 +228,19 @@ function commentrss_format_feed($items, $channel = array(), $namespaces = array(
 }
 
 // Format RSS for comments sent in reply to the nodes selected by the given SQL selector
-function commentrss_format_items($nodeselector = NULL) {
+function commentrss_format_items($nidselector, $joins = '', $where = '', $param = NULL) {
   global $base_url;
 
   $items = '';
-  $nodeselector = ((isset($nodeselector) && strlen($nodeselector)) ? "AND $nodeselector" : '');
-  
-  $sql = db_rewrite_sql("SELECT c.cid, n.nid, c.subject, c.comment, c.timestamp, c.uid, c.name FROM {comments} c INNER JOIN {node} n ON c.nid = n.nid WHERE n.status = 1 AND c.status = %d $nodeselector ORDER BY c.timestamp DESC", 'c', 'cid');
-  $comments = db_query_range($sql, COMMENT_PUBLISHED, 0, 15);
+
+  // Build SQL query from the passed elements
+  $SQL = 'SELECT '. $nidselector .', c.cid, c.subject, c.comment, c.timestamp, c.uid, c.name, c.format FROM {node} n ' . $joins . ' INNER JOIN {comments} c ON c.nid = n.nid WHERE ' . $where . ' n.status = 1 AND c.status = %d ORDER BY c.timestamp DESC';
+
+  // Add passed query parameter; plus we are looking for published comments
+  $params = isset($param) ? array($param) : array();
+  $params[] = COMMENT_PUBLISHED;
+
+  $comments = db_query_range(db_rewrite_sql($SQL), $params, COMMENT_PUBLISHED, 0, 15);
   while ($comment = db_fetch_object($comments)) {
     if ($comment->uid) {
       if ($user = user_load(array('uid' => $comment->uid))) {
