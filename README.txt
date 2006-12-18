@@ -1,9 +1,9 @@
 Drupal commentrss.module README.txt
 ==============================================================================
 
-This module adds comment RSS serving capabilties to Drupal, which is
+This module adds comment RSS serving capabilties to Drupal. These feeds are
 suitable for some tracking of comments for your users. The module adds
-feeds for the following points:
+feeds for the following:
 
   - complete site feed               /crss
   - per vocabulary feeds         eg. /crss/vocab/13
@@ -29,7 +29,7 @@ Installation
 ------------------------------------------------------------------------------
  
  Required:
-  - Copy commentrss.module to modules/
+  - Copy the module files to modules/
   - Enable the module as usual from Drupal's admin pages.
   
  Optional (if you would like to have nice vocabulary links in feeds):
