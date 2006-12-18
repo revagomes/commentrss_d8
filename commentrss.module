@@ -23,7 +23,7 @@ function commentrss_menu($may_cache) {
       // vocabulary_list module is serving this page - http://drupal.org/project/vocabulary_list
       drupal_add_link(array('rel' => 'alternate',
                           'type' => 'application/rss+xml',
-                          'title' => t('All comments'),
+                          'title' => t('Comments on this vocabulary'),
                           'href' => url('crss/vocab/'. arg(2), NULL, NULL, TRUE)));
     }
     elseif (arg(0) == 'taxonomy' && arg(1) == 'term') {
@@ -35,13 +35,14 @@ function commentrss_menu($may_cache) {
     elseif (arg(0) == 'node' && is_numeric(arg(1))) {
       $node = node_load(arg(1));
       if ($node->nid) {
+        $typename = node_get_types('name', $node);
         drupal_add_link(array('rel' => 'alternate',
                               'type' => 'application/rss+xml',
-                              'title' => t('Comments for %title', array('%title' => $node->title)),
+                              'title' => t('Comments for @title', array('@title' => $node->title)),
                               'href' => url('crss/node/'. arg(1), NULL, NULL, TRUE)));
         drupal_add_link(array('rel' => 'alternate',
                               'type' => 'application/rss+xml',
-                              'title' => t('Comments for all *%type* posts', array('%type' => $node->type)),
+                              'title' => t('Comments for all @type content', array('@type' => $typename)),
                               'href' => url('crss/nodetype/'. $node->type, NULL, NULL, TRUE)));
       }
     }
@@ -87,9 +88,9 @@ function commentrss_feed_vocab() {
     $link = (module_exist('vocabulary_list') ? url("taxonomy/vocabulary/$vid", NULL, NULL, TRUE) : $base_url);
     
     $channel = array(
-      'title'       => variable_get('site_name', 'drupal') .' - '. check_plain($vocab->name) .' - '. t('Comments'),
+      'title'       => check_plain(variable_get('site_name', 'drupal') .' - '. $vocab->name) .' - '. t('Comments'),
       'link'        => $link,
-      'description' => t('Comments for "%title"', array("%title" => $vocab->name)),
+      'description' => t('Comments for "@title"', array("@title" => $vocab->name)),
     );
     
     commentrss_format_feed($items, $channel);
@@ -107,9 +108,9 @@ function commentrss_feed_term() {
     $term = taxonomy_get_term($tid);
     
     $channel = array(
-      'title'       => variable_get('site_name', 'drupal') .' - '. check_plain($term->name) .' - '. t('Comments'),
+      'title'       => check_plain(variable_get('site_name', 'drupal') .' - '. $term->name) .' - '. t('Comments'),
       'link'        => url("taxonomy/term/$tid", NULL, NULL, TRUE),
-      'description' => t('Comments for "%title"', array("%title" => $term->name)),
+      'description' => t('Comments for "@title"', array("@title" => $term->name)),
     );
     
     commentrss_format_feed($items, $channel);
@@ -171,9 +172,9 @@ function commentrss_feed_node() {
     // COPIED from node_feed() end
     
     $channel = array(
-      'title'       => variable_get('site_name', 'drupal') .' - '. check_plain($item->title) .' - '. t('Comments'),
+      'title'       => check_plain(variable_get('site_name', 'drupal') .' - '. $item->title) .' - '. t('Comments'),
       'link'        => $link,
-      'description' => t('Comments for "%title"', array("%title" => $item->title)),
+      'description' => t('Comments for "@title"', array("@title" => $item->title)),
     );
     
     commentrss_format_feed($items, $channel, $namespaces);
@@ -189,12 +190,12 @@ function commentrss_feed_nodetype() {
     
     $items = commentrss_format_items('n.nid', '', "n.type = '%s' AND", $type);
     
-    $typename = check_plain(node_get_name($type));
+    $typename = node_get_types('name', $type);
     $channel = array(
-      'title'       => variable_get('site_name', 'drupal') .' - '. $typename .' - '. t('Comments'),
+      'title'       => check_plain(variable_get('site_name', 'drupal') .' - '. $typename) .' - '. t('Comments'),
       // no module provides a page for this type of listing
       //'link'        => url("nodesbytype/$type", NULL, NULL, TRUE),
-      'description' => t('Comments for "%type"', array("%type" => $typename)),
+      'description' => t('Comments for "@type"', array("@type" => $typename)),
     );
     
     commentrss_format_feed($items, $channel);
@@ -210,7 +211,7 @@ function commentrss_format_feed($items, $channel = array(), $namespaces = array(
   
   $channel_defaults = array(
     'version'     => '2.0',
-    'title'       => variable_get('site_name', 'drupal') . ' - ' . t('Comments'),
+    'title'       => check_plain(variable_get('site_name', 'drupal')) . ' - ' . t('Comments'),
     'link'        => $base_url,
     'description' => t('Comments'),
     'language'    => $locale
