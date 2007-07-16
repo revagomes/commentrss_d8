@@ -1,29 +1,21 @@
 Drupal commentrss.module README.txt
 ==============================================================================
 
-This module adds comment RSS serving capabilties to Drupal. These feeds are
-suitable for some tracking of comments for your users. The module adds
-feeds for the following:
+This module provides RSS feeds for comments. This is useful for allowing
+readers to subscribe to comments for a blog post, article, or forum topic.
+It currently provides 3 types of feeds, and an optional 4th type. Each type of
+comment field may be disabled if unneeded.
 
-  - complete site feed               /crss
-  - per vocabulary feeds         eg. /crss/vocab/13
-  - per term feeds               eg. /crss/term/14
-  - per node feeds               eg. /crss/node/12
-  - per node type feeds          eg. /crss/nodetype/story
-  
-This module might also be handy as an alternative to subscriptions, since
-your users don't need to provide their email addresses, but still can follow
-discussion on forums and other nodes. Due to the limited capabilities of RSS,
-threading and such is not preserved, the comments are listed in reversed
-time order.
+  * complete site feed        /crss
+  * per node feeds        eg. /crss/node/12
+  * per term feeds        eg. /crss/term/13
+  * per vocabulary feeds  eg. /crss/vocab/1 (requires vocabulary_list.module)
 
-Note that this module can optionaly work with vocabulary_list.module in 
-order to print channel links in vocabulary listing feeds, since this type 
-of service is not provided by Drupal core. You don't need to install
-vocabulary_list.module to use commentrss though.
+Comment feeds provide an alternative to email subscriptions, allowing users to
+monitor discussions without having to provide their email address. Due to the
+limited capabilities of RSS, threading is not preserved and the comments are
+listed in reversed time order.
 
-Per node type listing pages are not available in Drupal in any known
-custom module, so there are no direct channel links printed in that case.
 
 Installation
 ------------------------------------------------------------------------------
@@ -38,8 +30,8 @@ Installation
 Credits / Contact
 ------------------------------------------------------------------------------
 
-This module was created by Gabor Hojtsy (goba[at]php.net), who is also
-the active maintainer. Moshe Weitzman provided several fixes and improvements.
+This module was created by Gabor Hojtsy (goba[at]php.net). Moshe Weitzman
+provided several fixes and improvements. Chris Cook is the current maintainer.
 
 TODO
 ------------------------------------------------------------------------------
