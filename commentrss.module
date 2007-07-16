@@ -1,217 +1,195 @@
 <?php
 // $Id$
 
-function commentrss_help($section = "admin/modules#description") {
-  if ($section == "admin/modules#description") {
-    return t('Provides RSS feeds for comments');
+/**
+ * @file
+ * Publishes RSS feeds for comments.
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+function commentrss_help($section) {
+  $output = '';
+  switch ($section) {
+    case 'admin/modules#description':
+      $output = t('Provides RSS feeds for comments');
+      break;
+    case 'admin/content/commentrss':
+      $output = '<p>' . t('Select the types of comment feeds to be enabled.') . '</p>';
+      break;
+    case 'admin/help#commentrss':
+      $output = '<p>' . t('The commentrss module provides RSS feeds for comments. Comment feeds are published on pages which also provide a feed of nodes. Some comment feeds may be disabled if the are not needed.') . '</p>';
+      $output .= '<p>' . t('If comment feeds are enabled for individual nodes then a "wfw:commentRss" element is added to node feeds so that aggregators may discover the corresponding comment feed.') . '</p>';
+      $output .= '<p>' . t('If the !link module is installed then a comment feed will be added to complement the node feed provided by that module.', array('!link' => l('vocabulary_list', 'http://drupal.org/project/vocabulary_list'))) . '</p>';
+      break;
   }
+  return $output;
 }
 
+/**
+ * Implementation of hook_menu().
+ */
 function commentrss_menu($may_cache) {
+  $items = array();
   if ($may_cache) {
+    $items[] = array(
+      'path' => 'admin/content/commentrss',
+      'title' => t('Comment RSS publishing'),
+      'description' => t('Configure RSS feeds for comments.'),
+      'callback' => 'drupal_get_form',
+      'callback arguments' => 'commentrss_admin_settings',
+      'access' => user_access('administer site configuration'),
+      'type' => MENU_NORMAL_ITEM);
     $items[] = array('path' => 'crss', 'title' => '',
       'callback' => 'commentrss_handler',
       'access' => user_access('access content'),
       'type' => MENU_CALLBACK);
   }
   else {
-    drupal_add_link(array('rel' => 'alternate',
-                          'type' => 'application/rss+xml',
-                          'title' => t('All comments'),
-                          'href' => url('crss', NULL, NULL, TRUE)));
-    if (arg(0) == 'taxonomy' && arg(1) == 'vocabulary') {
-      // vocabulary_list module is serving this page - http://drupal.org/project/vocabulary_list
-      drupal_add_link(array('rel' => 'alternate',
-                          'type' => 'application/rss+xml',
-                          'title' => t('Comments on this vocabulary'),
-                          'href' => url('crss/vocab/'. arg(2), NULL, NULL, TRUE)));
-    }
-    elseif (arg(0) == 'taxonomy' && arg(1) == 'term') {
-      drupal_add_link(array('rel' => 'alternate',
-                          'type' => 'application/rss+xml',
-                          'title' => t('Comments on this taxonomy term'),
-                          'href' => url('crss/term/'. arg(2), NULL, NULL, TRUE)));
-    }
-    elseif (arg(0) == 'node' && is_numeric(arg(1))) {
+    if (arg(0) == 'node' && is_numeric(arg(1)) && variable_get('commentrss_node', TRUE)) {
       $node = node_load(arg(1));
-      if ($node->nid) {
-        $typename = node_get_types('name', $node);
-        drupal_add_link(array('rel' => 'alternate',
-                              'type' => 'application/rss+xml',
-                              'title' => t('Comments for @title', array('@title' => $node->title)),
-                              'href' => url('crss/node/'. arg(1), NULL, NULL, TRUE)));
-        drupal_add_link(array('rel' => 'alternate',
-                              'type' => 'application/rss+xml',
-                              'title' => t('Comments for all @type content', array('@type' => $typename)),
-                              'href' => url('crss/nodetype/'. $node->type, NULL, NULL, TRUE)));
+      if ($node->nid && $node->comment != COMMENT_NODE_DISABLED) {
+        drupal_add_feed(url('crss/node/'. $node->nid),
+          t('Comments for @title', array('@title' => $node->title)));
       }
+    }
+    elseif (arg(0) == 'node' && variable_get('commentrss_site', TRUE)) {
+      drupal_add_feed(url('crss'),
+        t('@site - All comments', array('@site' => variable_get('site_name', 'Drupal'))));
+    }
+    elseif (arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2)) && variable_get('commentrss_term', FALSE)) {
+      $term = taxonomy_get_term(arg(2));
+      if ($term->tid) {
+        drupal_add_feed(url('crss/term/'. $term->tid),
+          t('Comments for category "@title"', array('@title' => $term->name)));
+      }
+    }
+    elseif (arg(0) == 'taxonomy' && arg(1) == 'vocabulary' && is_numeric(arg(2)) && variable_get('commentrss_node', FALSE)) {
+      // vocabulary_list module is serving this page
+      drupal_add_feed(url('crss/vocab/'. arg(2)), t('Comments for this vocabulary'));
     }
   }
   return $items;
 }
 
-function commentrss_handler($type = NULL) {
-  if ($type) {
-    if (in_array($type, array('node', 'term', 'vocab', 'nodetype'))) {
-      if (call_user_func('commentrss_feed_' . $type)) {
-        return;
-      }
-    }
-  }
-  else {
-    if (commentrss_feed_site()) {
+/**
+ * Menu callback; publish an RSS feed
+ */
+function commentrss_handler($type = 'site') {
+  if ($type && variable_get('commentrss_'. $type, FALSE)) {
+    if (call_user_func('commentrss_feed_'. $type)) {
       return;
     }
   }
   drupal_not_found();
 }
 
-// Provides a comment feed for the complete Drupal site (ie. all nodes)
+/**
+ * Publish a feed for all comments
+ */
 function commentrss_feed_site() {
   $items = commentrss_format_items('n.nid');
   commentrss_format_feed($items);
   return TRUE;
 }
 
-// Provides a comment feed for nodes in a vocabulary
-// For the master link in the RSS feed to work, you need vocabulary_list.module!
-function commentrss_feed_vocab() {
-  global $base_url;
-  
-  $vid = arg(2);
-  if (is_numeric($vid)) {
-    
-    $items = commentrss_format_items('DISTINCT(n.nid)', 'INNER JOIN {term_node} r ON n.nid = r.nid INNER JOIN {term_data} d ON r.tid = d.tid', 'd.vid = %d AND', $vid);
-    $vocab = taxonomy_get_vocabulary($vid);
-    
-    // We can link to a specific page if vocabulary listing is present
-    $link = (module_exist('vocabulary_list') ? url("taxonomy/vocabulary/$vid", NULL, NULL, TRUE) : $base_url);
-    
-    $channel = array(
-      'title'       => check_plain(variable_get('site_name', 'drupal') .' - '. $vocab->name) .' - '. t('Comments'),
-      'link'        => $link,
-      'description' => t('Comments for "@title"', array("@title" => $vocab->name)),
-    );
-    
-    commentrss_format_feed($items, $channel);
-    return TRUE;
-  }
-  return FALSE;
-}
-
-// Provides a comment feed for nodes associated with a term
-function commentrss_feed_term() {
-  $tid = arg(2);
-  if (is_numeric($tid)) {
-    
-    $items = commentrss_format_items('DISTINCT(n.nid)', 'INNER JOIN {term_node} r ON n.nid = r.nid', 'r.tid = %d AND', $tid);
-    $term = taxonomy_get_term($tid);
-    
-    $channel = array(
-      'title'       => check_plain(variable_get('site_name', 'drupal') .' - '. $term->name) .' - '. t('Comments'),
-      'link'        => url("taxonomy/term/$tid", NULL, NULL, TRUE),
-      'description' => t('Comments for "@title"', array("@title" => $term->name)),
-    );
-    
-    commentrss_format_feed($items, $channel);
-    return TRUE;
-  }
-  return FALSE;
-}
-
-// Provides a comment feed for a single node (also includes the node teaser
-// as the last item, even if there are too many comments which are not
-// included in the resulting RSS output)
+/**
+ * Publish a feed for all comments of a specified node
+ */
 function commentrss_feed_node() {
   global $base_url;
 
-  $nid = arg(2);
-  if (is_numeric($nid)) {
-    if (!($item = node_load($nid))) {
-      return FALSE;
-    }
-
-    $items = commentrss_format_items('n.nid', '', 'n.nid = %d AND', $nid);
-    $link = url("node/$nid", NULL, NULL, TRUE);
-
-    // COPIED from node_feed() start
-    $item_length = variable_get('feed_item_length', 'teaser');
-    if ($item_length != 'title') {
-      $teaser = ($item_length == 'teaser') ? TRUE : FALSE;
-      if (node_hook($item, 'view')) {
-        node_invoke($item, 'view', $teaser, FALSE);
-      }
-      else {
-        $item = node_prepare($item, $teaser);
-      }
-      node_invoke_nodeapi($item, 'view', $teaser, FALSE);
-    }
-    switch ($item_length) {
-      case 'fulltext':
-        $item_text = $item->body;
-        break;
-      case 'teaser':
-        $item_text = $item->teaser;
-        if ($item->readmore) {
-          $item_text .= '<p>'. l(t('read more'), 'node/'. $item->nid, NULL, NULL, NULL, TRUE) .'</p>';
+  if (is_numeric(arg(2))) {
+    $node = node_load(arg(2));
+    if ($node->nid) {
+      $items = commentrss_format_items('n.nid', '', 'n.nid = %d AND', $node->nid);
+      $extra_defaults = array(
+        array('key' => 'pubDate', 'value' => date('r', $node->created)),
+        array('key' => 'dc:creator', 'value' => $node->name),
+        array('key' => 'guid', 'attributes' => array('isPermaLink' => 'false'),
+                'value' => url('node/'. $node->nid))
+      );
+      $extra = node_invoke_nodeapi($node, 'rss item');
+      $extra = array_merge($extra, $extra_defaults);
+      $namespaces = array();
+      foreach ($extra as $element) {
+        if ($element['namespace']) {
+          $namespaces[] = $element['namespace'];
         }
-        break;
-      case 'title':
-        $item_text = '';
-        break;
-    }
-    $extra = node_invoke_nodeapi($item, 'rss item');
-    $extra = array_merge($extra, array(array('key' => 'pubDate', 'value' =>  date('r', $item->created)), array('key' => 'dc:creator', 'value' => $item->name), array('key' => 'guid', 'value' => $item->nid . ' at ' . $base_url, 'attributes' => array('isPermaLink' => 'false'))));
-    $namespaces = array();
-    foreach ($extra as $element) {
-      if ($element['namespace']) {
-        $namespaces[] = $element['namespace'];
       }
+      $channel = array(
+        'title' => t('@site - Comments for "@title"', array(
+                       '@site' => check_plain(variable_get('site_name', 'Drupal')),
+                       '@title' => check_plain($node->title))),
+        'description' => t('Comments for "@title"', array('@title' => $node->title)),
+        'link' => url('node/'. $node->nid, NULL, NULL, TRUE),
+      );
+
+      commentrss_format_feed($items, $channel, $namespaces);
+      return TRUE;
     }
-    $items .= format_rss_item($item->title, $link, $item_text, $extra);
-    // COPIED from node_feed() end
-    
-    $channel = array(
-      'title'       => check_plain(variable_get('site_name', 'drupal') .' - '. $item->title) .' - '. t('Comments'),
-      'link'        => $link,
-      'description' => t('Comments for "@title"', array("@title" => $item->title)),
-    );
-    
-    commentrss_format_feed($items, $channel, $namespaces);
-    return TRUE;
   }
   return FALSE;
 }
 
-// Provides a comment feed for nodes of a certain type
-function commentrss_feed_nodetype() {
-  $type = arg(2);
-  if (preg_match("!^[a-z0-9-]+$!", $type)) {
-    
-    $items = commentrss_format_items('n.nid', '', "n.type = '%s' AND", $type);
-    
-    $typename = node_get_types('name', $type);
-    $channel = array(
-      'title'       => check_plain(variable_get('site_name', 'drupal') .' - '. $typename) .' - '. t('Comments'),
-      // no module provides a page for this type of listing
-      //'link'        => url("nodesbytype/$type", NULL, NULL, TRUE),
-      'description' => t('Comments for "@type"', array("@type" => $typename)),
-    );
-    
-    commentrss_format_feed($items, $channel);
-    return TRUE;
+/**
+ * Publish a feed for all comments with a specified term
+ */
+function commentrss_feed_term() {
+  if (is_numeric(arg(2))) {
+    $term = taxonomy_get_term(arg(2));
+    if ($term->tid) {
+      $items = commentrss_format_items('DISTINCT(n.nid)', 'INNER JOIN {term_node} r ON n.nid = r.nid', 'r.tid = %d AND', $term->tid);
+      $channel = array(
+        'title' => t('@site - Comments for "@term"', array(
+                       '@site' => check_plain(variable_get('site_name', 'Drupal')),
+                       '@term' => check_plain($term->name))),
+        'description' => t('Comments for the category "@term"', array('@term' => $term->name)),
+        'link' => url('taxonomy/term/'. $term->tid, NULL, NULL, TRUE),
+      );
+
+      commentrss_format_feed($items, $channel);
+      return TRUE;
+    }
   }
   return FALSE;
 }
 
-// Format a comment feed with the given items and print the output
-// This is a customized version of the core node_feed()
+/**
+ * Publish a feed for all comments with any term in a specified vocabulary
+ * 
+ * Requires vocabulary_list.module
+ */
+function commentrss_feed_vocab() {
+  if (module_exists('vocabulary_list') && is_numeric(arg(2))) {
+    $vocab = taxonomy_get_vocabulary(arg(2));
+    if ($vocab->vid) {
+      $items = commentrss_format_items('DISTINCT(n.nid)', 'INNER JOIN {term_node} r ON n.nid = r.nid INNER JOIN {term_data} d ON r.tid = d.tid', 'd.vid = %d AND', $vid);
+      $channel = array(
+        'title' => t('@site - Comments for "@vocab"', array(
+                       '@site' => check_plain(variable_get('site_name', 'Drupal')),
+                       '@vocab' => check_plain($vocab->name))),
+        'description' => t('Comments for all categories in "@vocab"', array('@vocab' => $vocab->name)),
+        'link' => url('taxonomy/vocabulary/'. $vocab->vid, NULL, NULL, TRUE),
+      );
+
+      commentrss_format_feed($items, $channel);
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+/**
+ *  Format and print a comment feed
+ */
 function commentrss_format_feed($items, $channel = array(), $namespaces = array()) {
   global $base_url, $locale;
   
   $channel_defaults = array(
     'version'     => '2.0',
-    'title'       => check_plain(variable_get('site_name', 'drupal')) . ' - ' . t('Comments'),
+    'title'       => check_plain(variable_get('site_name', 'Drupal')) .' - '. t('Comments'),
     'link'        => $base_url,
     'description' => t('Comments'),
     'language'    => $locale
@@ -219,8 +197,8 @@ function commentrss_format_feed($items, $channel = array(), $namespaces = array(
   $channel = array_merge($channel_defaults, $channel);
   $namespaces = array_merge(array('xmlns:dc="http://purl.org/dc/elements/1.1/"'), $namespaces);
   
-  $output = '<?xml version="1.0" encoding="utf-8"?>' . "\n";
-  $output .= '<rss version="'. $channel["version"] . '" xml:base="'. $base_url .'" ' . implode(' ', $namespaces) . ">\n";
+  $output = '<?xml version="1.0" encoding="utf-8"?>'."\n";
+  $output .= '<rss version="'. $channel['version'] .'" xml:base="'. $base_url .'" '. implode(' ', $namespaces) . ">\n";
   $output .= format_rss_channel($channel['title'], $channel['link'], $channel['description'], $items, $channel['language']);
   $output .= "</rss>\n";
 
@@ -228,7 +206,9 @@ function commentrss_format_feed($items, $channel = array(), $namespaces = array(
   print $output;
 }
 
-// Format RSS for comments sent in reply to the nodes selected by the given SQL selector
+/**
+ * Format RSS for comments sent in reply to the nodes selected by the given SQL selector
+ */
 function commentrss_format_items($nidselector, $joins = '', $where = '', $param = NULL) {
   global $base_url;
 
@@ -256,4 +236,45 @@ function commentrss_format_items($nidselector, $joins = '', $where = '', $param 
     $items .= format_rss_item($comment->subject, $link, check_markup($comment->comment, $comment->format, FALSE), $extra);
   }
   return $items;
+}
+
+/**
+ * Implementation of hook_nodeapi().
+ */
+function commentrss_nodeapi(&$node, $op) {
+  if ($op == 'rss item') {
+    // Add a wfw:commentRss element to node feed entries if:
+    //   node comments are enabled for the node
+    //   comment feeds for individual nodes are enabled
+    if ($node->comment != COMMENT_NODE_DISABLED && variable_get('commentrss_node', TRUE)) {
+      // The "wfw" namespace is added to each element due to a bug in node_feed().
+      // See http://drupal.org/node/157709
+      return array(array(
+        'key' => 'wfw:commentRss',
+        'attributes' => array('xmlns:wfw' => 'http://wellformedweb.org/CommentAPI/'),
+        'value' => url('crss/node/'. $node->nid, NULL, NULL, TRUE)));
+    }
+  }
+}
+
+/**
+ * Menu callback; displays the commentrss module settings page.
+ */
+function commentrss_admin_settings() {
+  $form['commentrss_site'] = array('#type' => 'checkbox',
+    '#title' => t('Node comments for entire site'),
+    '#default_value' => variable_get('commentrss_site', FALSE));
+  $form['commentrss_node'] = array('#type' => 'checkbox',
+    '#title' => t('Node comments for individual nodes'),
+    '#default_value' => variable_get('commentrss_node', FALSE));
+  $form['commentrss_term'] = array('#type' => 'checkbox',
+    '#title' => t('Node comments for a term'),
+    '#default_value' => variable_get('commentrss_term', FALSE));
+  if (module_exists('vocabulary_list')) {
+    $form['commentrss_vocab'] = array('#type' => 'checkbox',
+      '#title' => t('Node comments for a vocabulary'),
+      '#default_value' => variable_get('commentrss_vocab', FALSE));
+  }
+
+  return system_settings_form($form);
 }
