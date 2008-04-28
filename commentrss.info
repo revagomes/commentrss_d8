@@ -1,4 +1,5 @@
 ; $Id$
 name = Comment RSS
 description = Provides RSS feeds for comments
-dependencies = comment
+core = 6.x
+dependencies[] = comment

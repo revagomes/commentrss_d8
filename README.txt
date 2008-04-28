@@ -21,7 +21,7 @@ Installation
 ------------------------------------------------------------------------------
  
  Required:
-  - Copy the module files to modules/
+  - Copy the module files to sites/all/modules/
   - Enable the module as usual from Drupal's admin pages.
   
  Optional (if you would like to have nice vocabulary links in feeds):
