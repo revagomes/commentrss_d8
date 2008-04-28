@@ -30,8 +30,9 @@ Installation
 Credits / Contact
 ------------------------------------------------------------------------------
 
-This module was created by Gabor Hojtsy (goba[at]php.net). Moshe Weitzman
-provided several fixes and improvements. Chris Cook is the current maintainer.
+This module was created by Gabor Hojtsy (http://drupal.org/user/4166). 
+Moshe Weitzman provided several fixes and improvements, and Chris Cook 
+maintained it for quite some time as well.
 
 TODO
 ------------------------------------------------------------------------------
