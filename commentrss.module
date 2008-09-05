@@ -32,13 +32,14 @@ function commentrss_menu() {
     'title' => 'Comment RSS publishing',
     'description' => 'Configure RSS feeds for comments.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => 'commentrss_admin_settings',
+    'page arguments' => array('commentrss_admin_settings'),
     'access arguments' => array('administer site configuration'),
     'type' => MENU_NORMAL_ITEM,
   );
   $items['crss'] = array(
     'title' => '',
     'page callback' => 'commentrss_handler',
+    'page arguments' => array(1, 2),
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
   );
@@ -78,9 +79,11 @@ function commentrss_init() {
 /**
  * Menu callback; publish an RSS feed
  */
-function commentrss_handler($type = 'site') {
-  if ($type && variable_get('commentrss_'. $type, FALSE)) {
-    if (call_user_func('commentrss_feed_'. $type)) {
+function commentrss_handler($type = 'site', $value = NULL) {
+  // Keep site and node feeds enabled by default.
+  $default = (in_array($type, array('site', 'node')));
+  if (strlen($type) && variable_get('commentrss_'. $type, $default)) {
+    if (call_user_func('commentrss_feed_'. $type, $value)) {
       return;
     }
   }
@@ -99,11 +102,11 @@ function commentrss_feed_site() {
 /**
  * Publish a feed for all comments of a specified node
  */
-function commentrss_feed_node() {
+function commentrss_feed_node($nid = NULL) {
   global $base_url;
 
-  if (is_numeric(arg(2))) {
-    $node = node_load(arg(2));
+  if (is_numeric($nid)) {
+    $node = node_load($nid);
     if ($node->nid) {
       $items = commentrss_format_items('n.nid', '', 'n.nid = %d AND', $node->nid);
       $extra_defaults = array(
@@ -138,9 +141,9 @@ function commentrss_feed_node() {
 /**
  * Publish a feed for all comments with a specified term
  */
-function commentrss_feed_term() {
-  if (is_numeric(arg(2))) {
-    $term = taxonomy_get_term(arg(2));
+function commentrss_feed_term($tid = NULL) {
+  if (is_numeric($tid)) {
+    $term = taxonomy_get_term($tid);
     if ($term->tid) {
       $items = commentrss_format_items('DISTINCT(n.nid)', 'INNER JOIN {term_node} r ON n.nid = r.nid', 'r.tid = %d AND', $term->tid);
       $channel = array(
@@ -163,11 +166,11 @@ function commentrss_feed_term() {
  *
  * Requires vocabulary_list.module
  */
-function commentrss_feed_vocab() {
-  if (module_exists('vocabulary_list') && is_numeric(arg(2))) {
-    $vocab = taxonomy_vocabulary_load(arg(2));
+function commentrss_feed_vocab($vid = NULL) {
+  if (module_exists('vocabulary_list') && is_numeric($vid)) {
+    $vocab = taxonomy_vocabulary_load($vid);
     if ($vocab->vid) {
-      $items = commentrss_format_items('DISTINCT(n.nid)', 'INNER JOIN {term_node} r ON n.nid = r.nid INNER JOIN {term_data} d ON r.tid = d.tid', 'd.vid = %d AND', $vid);
+      $items = commentrss_format_items('DISTINCT(n.nid)', 'INNER JOIN {term_node} r ON n.nid = r.nid INNER JOIN {term_data} d ON r.tid = d.tid', 'd.vid = %d AND', $vocab->vid);
       $channel = array(
         'title' => t('@site - Comments for "@vocab"', array(
                        '@site' => check_plain(variable_get('site_name', 'Drupal')),
@@ -278,13 +281,12 @@ function commentrss_admin_settings() {
     '#title' => t('Enable individual comment feeds for each taxonomy term listing on the website'),
     '#default_value' => variable_get('commentrss_term', FALSE)
   );
-  if (module_exists('vocabulary_list')) {
-    $form['commentrss_vocab'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Node comments for a vocabulary'),
-      '#default_value' => variable_get('commentrss_vocab', FALSE)
-    );
-  }
+  $form['commentrss_vocab'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable comment feeds for vocabularies on the website (requires vocabulary_list module)'),
+    '#default_value' => variable_get('commentrss_vocab', FALSE),
+    '#disabled' => !module_exists('vocabulary_list')
+  );
 
   return system_settings_form($form);
 }
