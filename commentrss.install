@@ -3,23 +3,16 @@
 
 /**
  * @file
- * Provides install and uninstall functions for commentrss.
+ *   Provides install and uninstall functions for commentrss.
  */
-
-/**
- * Implementation of hook_install().
- */
-function commentrss_install() {
-  variable_set('commentrss_site', TRUE);
-  variable_set('commentrss_node', TRUE);
-}
 
 /**
  * Implementation of hook_uninstall().
  */
 function commentrss_uninstall() {
-  // Delete all the commentrss variables and then clear the variable cache.
-  db_query("DELETE FROM {variable} WHERE name LIKE 'commentrss_%'");
-  db_query("DELETE FROM {menu} WHERE path = 'admin/content/commentrss'");
-  cache_clear_all('variables', 'cache');
+  // Delete all variables.
+  variable_del('commentrss_site');
+  variable_del('commentrss_node');
+  variable_del('commentrss_term');
+  variable_del('commentrss_vocab');
 }
