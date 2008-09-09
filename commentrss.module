@@ -40,7 +40,7 @@ function commentrss_menu() {
     'title' => '',
     'page callback' => 'commentrss_handler',
     'page arguments' => array(1, 2),
-    'access arguments' => array('access content'),
+    'access arguments' => array('access comments'),
     'type' => MENU_CALLBACK,
   );
 
@@ -79,7 +79,9 @@ function commentrss_init() {
 /**
  * Menu callback; publish an RSS feed
  */
-function commentrss_handler($type = 'site', $value = NULL) {
+function commentrss_handler($type = NULL, $value = NULL) {
+  // Make site the default type.
+  $type = empty($type) ? 'site' : $type;
   // Keep site and node feeds enabled by default.
   $default = (in_array($type, array('site', 'node')));
   if (strlen($type) && variable_get('commentrss_'. $type, $default)) {
