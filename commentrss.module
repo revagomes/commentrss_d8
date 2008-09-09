@@ -51,29 +51,32 @@ function commentrss_menu() {
  * Implementation of hook_init().
  */
 function commentrss_init() {
-  if (arg(0) == 'node' && is_numeric(arg(1)) && variable_get('commentrss_node', TRUE)) {
-    $node = node_load(arg(1));
-    if ($node->nid && $node->comment != COMMENT_NODE_DISABLED) {
-      drupal_add_feed(url('crss/node/'. $node->nid),
-        t('Comments for @title', array('@title' => $node->title)));
+  // This hook gets called for offline pages and breaks the theme, so
+  // skip running in that case to avoid interfering with that operation.
+  if (!variable_get('site_offline', 0)) {
+    if (arg(0) == 'node' && is_numeric(arg(1)) && variable_get('commentrss_node', TRUE)) {
+      $node = node_load(arg(1));
+      if ($node->nid && $node->comment != COMMENT_NODE_DISABLED) {
+        drupal_add_feed(url('crss/node/'. $node->nid),
+          t('Comments for @title', array('@title' => $node->title)));
+      }
+    }
+    elseif (arg(0) == 'node' && variable_get('commentrss_site', TRUE)) {
+      drupal_add_feed(url('crss'),
+        t('@site - All comments', array('@site' => variable_get('site_name', 'Drupal'))));
+    }
+    elseif (arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2)) && variable_get('commentrss_term', FALSE)) {
+      $term = taxonomy_get_term(arg(2));
+      if ($term->tid) {
+        drupal_add_feed(url('crss/term/'. $term->tid),
+          t('Comments for category "@title"', array('@title' => $term->name)));
+      }
+    }
+    elseif (arg(0) == 'taxonomy' && arg(1) == 'vocabulary' && is_numeric(arg(2)) && variable_get('commentrss_node', FALSE)) {
+      // vocabulary_list module is serving this page
+      drupal_add_feed(url('crss/vocab/'. arg(2)), t('Comments for this vocabulary'));
     }
   }
-  elseif (arg(0) == 'node' && variable_get('commentrss_site', TRUE)) {
-    drupal_add_feed(url('crss'),
-      t('@site - All comments', array('@site' => variable_get('site_name', 'Drupal'))));
-  }
-  elseif (arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2)) && variable_get('commentrss_term', FALSE)) {
-    $term = taxonomy_get_term(arg(2));
-    if ($term->tid) {
-      drupal_add_feed(url('crss/term/'. $term->tid),
-        t('Comments for category "@title"', array('@title' => $term->name)));
-    }
-  }
-  elseif (arg(0) == 'taxonomy' && arg(1) == 'vocabulary' && is_numeric(arg(2)) && variable_get('commentrss_node', FALSE)) {
-    // vocabulary_list module is serving this page
-    drupal_add_feed(url('crss/vocab/'. arg(2)), t('Comments for this vocabulary'));
-  }
-
 }
 
 /**
