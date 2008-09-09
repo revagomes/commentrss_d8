@@ -55,17 +55,20 @@ function commentrss_init() {
   // skip running in that case to avoid interfering with that operation.
   if (!variable_get('site_offline', 0)) {
     if (arg(0) == 'node' && is_numeric(arg(1)) && variable_get('commentrss_node', TRUE)) {
+      // Comment feed for a specific node.
       $node = node_load(arg(1));
       if ($node->nid && $node->comment != COMMENT_NODE_DISABLED) {
         drupal_add_feed(url('crss/node/'. $node->nid),
           t('Comments for @title', array('@title' => $node->title)));
       }
     }
-    elseif (arg(0) == 'node' && variable_get('commentrss_site', TRUE)) {
+    elseif (((arg(0) == 'node') || drupal_is_front_page()) && variable_get('commentrss_site', TRUE)) {
+      // Add main site feed on the 'node' page and on the frontpage.
       drupal_add_feed(url('crss'),
         t('@site - All comments', array('@site' => variable_get('site_name', 'Drupal'))));
     }
     elseif (arg(0) == 'taxonomy' && arg(1) == 'term' && is_numeric(arg(2)) && variable_get('commentrss_term', FALSE)) {
+      // Comment feed for a specific term.
       $term = taxonomy_get_term(arg(2));
       if ($term->tid) {
         drupal_add_feed(url('crss/term/'. $term->tid),
