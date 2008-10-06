@@ -50,7 +50,10 @@ function commentrss_menu() {
   // Copy of menu item from system.module.
   $items['admin/content/rss-publishing/default'] = array(
     'title' => 'General settings',
+    'page callback' => 'commentrss_default_rss_settings_tab',
+    'weight' => -10,
     'type' => MENU_DEFAULT_LOCAL_TASK,
+    'file' => 'commentrss.admin.inc',
   );
   // New local task on the RSS publishing settings page.
   $items['admin/content/rss-publishing/commentrss'] = array(

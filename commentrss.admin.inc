@@ -7,6 +7,14 @@
  */
 
 /**
+ * Proxy callback for RSS settings to allow overriding the default tab.
+ */
+function commentrss_default_rss_settings_tab() {
+  include_once drupal_get_path('module', 'system') .'/system.admin.inc';
+  return drupal_get_form('system_rss_feeds_settings');
+}
+
+/**
  * Menu callback; displays the commentrss module settings page.
  */
 function commentrss_admin_settings() {
