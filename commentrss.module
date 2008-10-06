@@ -85,7 +85,7 @@ function commentrss_menu() {
 function commentrss_init() {
   // This hook gets called for offline pages and breaks the theme, so
   // skip running in that case to avoid interfering with that operation.
-  if (!variable_get('site_offline', 0)) {
+  if (!variable_get('site_offline', 0) && user_access('access comments')) {
     // Expose site feed based on settings.
     switch (variable_get('commentrss_site', COMMENTRSS_SITE_FRONT_PAGE)) {
       case COMMENTRSS_SITE_DISABLED:
