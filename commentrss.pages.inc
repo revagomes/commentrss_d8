@@ -203,7 +203,7 @@ function commentrss_format_items($nidselector, $joins = '', $where = '', $param 
     // Build up item content with node title if required.
     $content = '';
     if ($include_node_title) {
-      $content = '<p>'. t('In reply to <a href="@url">@title</a>', array('@url' => url('node/'. $comment->nid), '@title' => $comment->title)) .":</p>\n\n";
+      $content = '<p>'. t('In reply to <a href="@url">@title</a>', array('@url' => url('node/'. $comment->nid, array('absolute' => TRUE)), '@title' => $comment->title)) .":</p>\n\n";
     }
     $content .= check_markup($comment->comment, $comment->format, FALSE);
 
