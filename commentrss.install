@@ -15,3 +15,10 @@ function commentrss_uninstall() {
   variable_del('commentrss_node');
   variable_del('commentrss_term');
 }
+
+/**
+ * Empty update since menu items have changed.
+ */
+function commentrss_update_6200() {
+  return array();
+}

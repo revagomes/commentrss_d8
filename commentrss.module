@@ -50,10 +50,8 @@ function commentrss_menu() {
   // Copy of menu item from system.module.
   $items['admin/content/rss-publishing/default'] = array(
     'title' => 'General settings',
-    'page callback' => 'commentrss_default_rss_settings_tab',
-    'weight' => -10,
     'type' => MENU_DEFAULT_LOCAL_TASK,
-    'file' => 'commentrss.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
   );
   // New local task on the RSS publishing settings page.
   $items['admin/content/rss-publishing/commentrss'] = array(
@@ -115,17 +113,17 @@ function commentrss_init() {
     if ((arg(0) == 'node') && is_numeric($nid = arg(1)) && is_null(arg(2)) &&
         variable_get('commentrss_node', TRUE) && ($node = node_load($nid)) &&
         ($node->comment != COMMENT_NODE_DISABLED)) {
-        
+
       drupal_add_feed(
         url('crss/node/'. $node->nid),
         t('Comments for "@title"', array('@title' => $node->title))
       );
     }
-    
+
     // Expose term feed on term view page.
     if ((arg(0) == 'taxonomy') && (arg(1) == 'term') && is_numeric($tid = arg(2)) &&
         variable_get('commentrss_term', FALSE) && ($term = taxonomy_get_term($tid))) {
- 
+
       drupal_add_feed(
         url('crss/term/'. $term->tid),
         t('Comments for category "@title"', array('@title' => $term->name))
