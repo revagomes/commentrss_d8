@@ -112,7 +112,7 @@ function commentrss_init() {
     // Expose node feed on node view page.
     if ((arg(0) == 'node') && is_numeric($nid = arg(1)) && is_null(arg(2)) &&
         variable_get('commentrss_node', TRUE) && ($node = node_load($nid)) &&
-        ($node->comment != COMMENT_NODE_DISABLED)) {
+        node_access('view', $node) && ($node->comment != COMMENT_NODE_DISABLED)) {
 
       drupal_add_feed(
         url('crss/node/'. $node->nid),
