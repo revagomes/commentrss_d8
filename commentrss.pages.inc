@@ -203,9 +203,9 @@ function commentrss_format_items($nidselector = 'n.nid', $joins = '', $where = '
     $content .= check_markup($comment->comment, $comment->format, FALSE);
 
     $link = url('node/'. $comment->nid, array('fragment' => 'comment-'. $comment->cid, 'absolute' => TRUE));
-    $extra['pubDate']['value'] = date('r', $comment->timestamp);
-    $extra['dc:creator']['value'] = $comment->name;
-    $extra['guid']['value'] = 'comment ' . $comment->cid . ' at ' . $base_url;
+    $extra['pubDate'] = date('r', $comment->timestamp);
+    $extra['dc:creator'] = $comment->name;
+    $extra['guid'] = 'comment ' . $comment->cid . ' at ' . $base_url;
 
     $items .= format_rss_item($comment->subject, $link, $content, $extra);
   }
