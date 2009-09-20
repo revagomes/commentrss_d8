@@ -3,7 +3,7 @@
 
 /**
  * @file
- *   Provides install and uninstall functions for commentrss.
+ * Install, update and uninstall functions for the commentrss module.
  */
 
 /**
