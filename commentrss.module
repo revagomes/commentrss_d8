@@ -82,58 +82,68 @@ function commentrss_menu() {
 }
 
 /**
+ * Access callback; determines if the user can access a node's comment RSS.
+ */
+function commentrss_node_feed_access($node) {
+  return node_access('view', $node) && $node->comment != COMMENT_NODE_DISABLED;
+}
+
+/**
  * Implementation of hook_init().
  */
 function commentrss_init() {
   // This hook gets called for offline pages and breaks the theme, so
   // skip running in that case to avoid interfering with that operation.
-  if (!variable_get('site_offline', 0) && user_access('access comments')) {
-    // Expose site feed based on settings.
-    switch (variable_get('commentrss_site', COMMENTRSS_SITE_FRONT_PAGE)) {
-      case COMMENTRSS_SITE_DISABLED:
-        // No comment RSS feed for site.
-        break;
-      case COMMENTRSS_SITE_FRONT_PAGE:
-        if (!drupal_is_front_page()) {
-          // Only break if not front page.
-          break;
-        }
-      case COMMENTRSS_SITE_FRONT_AND_NODE_PAGE:
-        if (!drupal_is_front_page() || ($_GET['q'] != 'node')) {
-          // Only break if not front page and not node page.
-          break;
-        }
-      case COMMENTRSS_SITE_ALL_PAGES:
-        // Either we need to expose for all pages, or code was falling through
-        // to this point. We should expose the feed in any case.
-        drupal_add_feed(
-          url('crss'),
-          t('@site - All comments', array('@site' => variable_get('site_name', 'Drupal')))
-        );
-        break;
-    }
+  if (variable_get('site_offline', 0) || !user_access('access comments')) {
+    return;
+  }
 
-    // Expose node feed on node view page.
-    if ((arg(0) == 'node') && is_numeric($nid = arg(1)) && is_null(arg(2)) &&
-        variable_get('commentrss_node', TRUE) && ($node = node_load($nid)) &&
-        node_access('view', $node) && $node->comment != COMMENT_NODE_DISABLED) {
+  // Expose site feed based on settings.
+  switch (variable_get('commentrss_site', COMMENTRSS_SITE_FRONT_PAGE)) {
+    case COMMENTRSS_SITE_DISABLED:
+      // No comment RSS feed for site.
+      break;
+    case COMMENTRSS_SITE_FRONT_PAGE:
+      if (!drupal_is_front_page()) {
+        // Only break if not front page.
+        break;
+      }
+    case COMMENTRSS_SITE_FRONT_AND_NODE_PAGE:
+      if (!drupal_is_front_page() || ($_GET['q'] != 'node')) {
+        // Only break if not front page and not node page.
+        break;
+      }
+    case COMMENTRSS_SITE_ALL_PAGES:
+      // Either we need to expose for all pages, or code was falling through
+      // to this point. We should expose the feed in any case.
+      drupal_add_feed(
+        url('crss'),
+        t('@site - All comments', array('@site' => variable_get('site_name', 'Drupal')))
+      );
+      break;
+  }
 
+  // Expose node feed on node view page.
+  if (preg_match('%^node/\d+$%', $_GET['q']) && variable_get('commentrss_node', TRUE)) {
+    $node = node_load(arg(1));
+    if ($node && commentrss_node_feed_access($node)) {
       drupal_add_feed(
         url('crss/node/'. $node->nid),
         t('Comments for "@title"', array('@title' => $node->title))
       );
     }
-
-    // Expose term feed on term view page.
-    if ((arg(0) == 'taxonomy') && (arg(1) == 'term') && is_numeric($tid = arg(2)) &&
-        variable_get('commentrss_term', FALSE) && ($term = taxonomy_get_term($tid))) {
-
-      drupal_add_feed(
-        url('crss/term/'. $term->tid),
-        t('Comments for category "@title"', array('@title' => $term->name))
-      );
-    }
   }
+
+  // Expose term feed on term view page.
+  //if (preg_match('%^taxonomy/term/\d+$%', $_GET['q']) && variable_get('commentrss_term', FALSE)) {
+  //  $term = taxonomy_get_term(arg(2));
+  //  if ($term) {
+  //    drupal_add_feed(
+  //      url('crss/term/'. $term->tid),
+  //      t('Comments for category "@title"', array('@title' => $term->name))
+  //    );
+  //  }
+  //}
 }
 
 /**
