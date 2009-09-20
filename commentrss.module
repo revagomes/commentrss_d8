@@ -124,9 +124,9 @@ function commentrss_init() {
   }
 
   // Expose node feed on node view page.
-  if (preg_match('%^node/\d+$%', $_GET['q']) && variable_get('commentrss_node', TRUE)) {
+  if (preg_match('%^node/\d+$%', $_GET['q'])) {
     $node = node_load(arg(1));
-    if ($node && commentrss_node_feed_access($node)) {
+    if ($node && variable_get('commentrss_node', TRUE) && commentrss_node_feed_access($node)) {
       drupal_add_feed(
         url('crss/node/'. $node->nid, array('absolute' => TRUE)),
         t('Comments for "@title"', array('@title' => $node->title))
