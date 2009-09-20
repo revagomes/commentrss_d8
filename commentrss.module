@@ -117,7 +117,7 @@ function commentrss_init() {
       // Either we need to expose for all pages, or code was falling through
       // to this point. We should expose the feed in any case.
       drupal_add_feed(
-        url('crss'),
+        url('crss', array('absolute' => TRUE)),
         t('@site - All comments', array('@site' => variable_get('site_name', 'Drupal')))
       );
       break;
@@ -128,7 +128,7 @@ function commentrss_init() {
     $node = node_load(arg(1));
     if ($node && commentrss_node_feed_access($node)) {
       drupal_add_feed(
-        url('crss/node/'. $node->nid),
+        url('crss/node/'. $node->nid, array('absolute' => TRUE)),
         t('Comments for "@title"', array('@title' => $node->title))
       );
     }
@@ -139,7 +139,7 @@ function commentrss_init() {
   //  $term = taxonomy_get_term(arg(2));
   //  if ($term) {
   //    drupal_add_feed(
-  //      url('crss/term/'. $term->tid),
+  //      url('crss/term/'. $term->tid, array('absolute' => TRUE)),
   //      t('Comments for category "@title"', array('@title' => $term->name))
   //    );
   //  }
