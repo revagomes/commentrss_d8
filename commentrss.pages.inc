@@ -162,12 +162,6 @@ function commentrss_format_items($nidselector = 'n.nid', $joins = '', $where = '
 
   $items = '';
 
-  $extra = array(
-    'pubDate' => array('key' => 'pubDate'),
-    'dc:creator' => array('key' => 'dc:creator'),
-    'guid' => array('key' => 'guid', 'attributes' => array('isPermaLink' => 'false')),
-  );
-
   // Build SQL query from the passed elements.
   $sql = 'SELECT '. $nidselector .', c.cid, c.pid, c.subject, c.comment, c.timestamp, c.uid, c.name, c.format, u.name AS username, n.title FROM {node} n '. $joins .' INNER JOIN {comments} c ON c.nid = n.nid INNER JOIN {users} u ON c.uid = u.uid WHERE '. $where .' n.status = 1 AND c.status = %d ORDER BY c.timestamp DESC';
 
@@ -203,9 +197,21 @@ function commentrss_format_items($nidselector = 'n.nid', $joins = '', $where = '
     $content .= check_markup($comment->comment, $comment->format, FALSE);
 
     $link = url('node/'. $comment->nid, array('fragment' => 'comment-'. $comment->cid, 'absolute' => TRUE));
-    $extra['pubDate'] = date('r', $comment->timestamp);
-    $extra['dc:creator'] = $comment->name;
-    $extra['guid'] = 'comment ' . $comment->cid . ' at ' . $base_url;
+    $extra = array(
+      array(
+        'key' => 'pubDate',
+        'value' => format_date($comment->timestamp, 'custom', DATE_RFC2822),
+      ),
+      array(
+        'key' => 'dc:creator',
+        'value' => $comment->name,
+      ),
+      array(
+        'key' => 'guid',
+        'value' => 'comment ' . $comment->cid . ' at ' . $base_url,
+        'attributes' => array('isPermaLink' => 'false'),
+      )
+    );
 
     $items .= format_rss_item($comment->subject, $link, $content, $extra);
   }
