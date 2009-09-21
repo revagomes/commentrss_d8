@@ -26,9 +26,9 @@ define('COMMENTRSS_SITE_FRONT_AND_NODE_PAGE', 2);
  */
 define('COMMENTRSS_SITE_ALL_PAGES', 3);
 
-// Backport of the PHP 5.1.1 and above DATE_RFC2822 date constant.
-if (!defined('DATE_RFC2822')) {
-  define('DATE_RFC2822', 'D, d M Y H:i:s O');
+// Backport of the PHP 5.1.1 and above DATE_RSS date constant.
+if (!defined('DATE_RSS')) {
+  define('DATE_RSS', 'D, d M Y H:i:s O');
 }
 
 // == Core hooks ===============================================================

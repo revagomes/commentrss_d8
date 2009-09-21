@@ -200,7 +200,7 @@ function commentrss_format_items($nidselector = 'n.nid', $joins = '', $where = '
     $extra = array(
       array(
         'key' => 'pubDate',
-        'value' => gmdate(DATE_RFC2822, $comment->timestamp),
+        'value' => gmdate(DATE_RSS, $comment->timestamp),
       ),
       array(
         'key' => 'dc:creator',
