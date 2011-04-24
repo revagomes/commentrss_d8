@@ -77,7 +77,7 @@ function commentrss_feed_term($tid = NULL) {
  * Format and print a complete comment feed.
  *
  * @param $items
- *   XML fragment for the items. @see commentrss_format_items()
+ *   XML fragment for the items from commentrss_format_items().
  * @param $channel
  *   Associative array of channel information. Name of tags to include
  *   with value of tag values to add.
@@ -85,6 +85,8 @@ function commentrss_feed_term($tid = NULL) {
  *   Associative array of namespace arguments to add. Keyed by namespace
  *   argument name to add, for example 'xmlns:dc', with the value of the
  *   namespace URI such as http://purl.org/dc/elements/1.1/ in this case.
+ *
+ * @see commentrss_format_items()
  */
 function commentrss_format_feed($items, $channel = array(), $namespaces = array()) {
   global $base_url, $language;
@@ -133,7 +135,7 @@ function commentrss_format_items($nidselector = 'n.nid', $joins = '', $where = '
   $items = '';
 
   // Build SQL query from the passed elements.
-  $sql = 'SELECT '. $nidselector .', c.cid, c.pid, c.subject, c.comment, c.timestamp, c.uid, c.name, c.format, u.name AS username, n.title FROM {node} n '. $joins .' INNER JOIN {comments} c ON c.nid = n.nid INNER JOIN {users} u ON c.uid = u.uid WHERE '. $where .' n.status = 1 AND c.status = %d ORDER BY c.timestamp DESC';
+  $sql = 'SELECT ' . $nidselector . ', c.cid, c.pid, c.subject, c.comment, c.timestamp, c.uid, c.name, c.format, u.name AS username, n.title FROM {node} n ' . $joins . ' INNER JOIN {comments} c ON c.nid = n.nid INNER JOIN {users} u ON c.uid = u.uid WHERE ' . $where . ' n.status = 1 AND c.status = %d ORDER BY c.timestamp DESC';
 
   // Add passed query parameter; plus we are looking for published comments.
   if (!is_array($params)) {
