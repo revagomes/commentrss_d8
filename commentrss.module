@@ -25,11 +25,6 @@ define('COMMENTRSS_SITE_FRONT_AND_NODE_PAGE', 2);
  */
 define('COMMENTRSS_SITE_ALL_PAGES', 3);
 
-// Backport of the PHP 5.1.1 and above DATE_RSS date constant.
-if (!defined('DATE_RSS')) {
-  define('DATE_RSS', 'D, d M Y H:i:s O');
-}
-
 // == Core hooks ===============================================================
 
 /**
@@ -91,7 +86,7 @@ function commentrss_menu() {
  * Access callback; determines if the user can access a node's comment RSS.
  */
 function commentrss_node_feed_access($node, $check_view_access = TRUE) {
-  return $node->comment != COMMENT_NODE_DISABLED && variable_get('commentrss_node', TRUE) && (!$check_view_access || node_access('view', $node));
+  return $node->comment != COMMENT_NODE_HIDDEN && variable_get('commentrss_node', TRUE) && (!$check_view_access || node_access('view', $node));
 }
 
 /**
@@ -153,18 +148,17 @@ function commentrss_init() {
 }
 
 /**
- * Implementation of hook_nodeapi().
+ * Implementation of hook_node_view().
  */
-function commentrss_nodeapi(&$node, $op) {
-  if ($op == 'rss item' && commentrss_node_feed_access($node, FALSE)) {
-    // Add a wfw:commentRss element to node feed entries if:
-    // - node comments are enabled for the node
-    // - comment feeds for individual nodes are enabled
-    // The "wfw" namespace is added to each element due to a bug in node_feed().
-    // See http://drupal.org/node/157709
-    return array(array(
+function commentrss_node_view($node, $view_mode = 'full', $langcode = NULL) {
+  // Add a wfw:commentRss element to node feed entries if:
+  //   node comments are enabled for the node
+  //   comment feeds for individual nodes are enabled
+  if ($view_mode == 'rss' && commentrss_node_feed_access($node, FALSE)) {
+    $node->rss_elements[] = array(
       'key' => 'wfw:commentRss',
       'attributes' => array('xmlns:wfw' => 'http://wellformedweb.org/CommentAPI/'),
-      'value' => url('crss/node/'. $node->nid, array('absolute' => TRUE))));
+      'value' => url('crss/node/'. $node->nid, array('absolute' => TRUE)),
+    );
   }
 }
