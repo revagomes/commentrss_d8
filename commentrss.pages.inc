@@ -36,7 +36,7 @@ function commentrss_feed_node($node) {
       )
     ),
     'description' => t('Comments for "@title"', array('@title' => $node->title)),
-    'link' => url('node/'. $node->nid, array('absolute' => TRUE)),
+    'link' => url('node/' . $node->nid, array('absolute' => TRUE)),
   );
   commentrss_format_feed($items, $channel);
 }
@@ -63,7 +63,7 @@ function commentrss_feed_term($tid = NULL) {
         )
       ),
       'description' => t('Comments for the category "@term"', array('@term' => $term->name)),
-      'link' => url('taxonomy/term/'. $term->tid, array('absolute' => TRUE)),
+      'link' => url('taxonomy/term/' . $term->tid, array('absolute' => TRUE)),
     );
     commentrss_format_feed($items, $channel);
     return TRUE;
@@ -99,8 +99,8 @@ function commentrss_format_feed($items, $channel = array(), $namespaces = array(
   $channel = array_merge($channel_defaults, $channel);
   $namespaces = array_merge(array('xmlns:dc' => 'http://purl.org/dc/elements/1.1/'), $namespaces);
 
-  $output = '<?xml version="1.0" encoding="utf-8"?>'."\n";
-  $output .= '<rss version="'. $channel['version'] .'" xml:base="'. $base_url .'"'. drupal_attributes($namespaces) .">\n";
+  $output = '<?xml version="1.0" encoding="utf-8"?>' . "\n";
+  $output .= '<rss version="' . $channel['version'] . '" xml:base="' . $base_url . '"' . drupal_attributes($namespaces) . ">\n";
   $output .= format_rss_channel($channel['title'], $channel['link'], $channel['description'], $items, $channel['language']);
   $output .= "</rss>\n";
 
@@ -158,7 +158,7 @@ function commentrss_format_items($nidselector = 'n.nid', $joins = '', $where = '
     // Build up item content with node title if required.
     $content = '';
     if ($include_node_title) {
-      $content = '<p>'. t('In reply to <a href="@url">@title</a>', array('@url' => url('node/'. $comment->nid, array('absolute' => TRUE)), '@title' => $comment->title)) .":</p>\n\n";
+      $content = '<p>' . t('In reply to <a href="@url">@title</a>', array('@url' => url('node/' . $comment->nid, array('absolute' => TRUE)), '@title' => $comment->title)) . ":</p>\n\n";
     }
 
     // Format RSS item with input format used on comment. The format
@@ -166,7 +166,7 @@ function commentrss_format_items($nidselector = 'n.nid', $joins = '', $where = '
     // so skip the format validation in check_markup() itself.
     $content .= check_markup($comment->comment, $comment->format, FALSE);
 
-    $link = url('node/'. $comment->nid, array('fragment' => 'comment-'. $comment->cid, 'absolute' => TRUE));
+    $link = url('node/' . $comment->nid, array('fragment' => 'comment-' . $comment->cid, 'absolute' => TRUE));
     $extra = array(
       array(
         'key' => 'pubDate',
