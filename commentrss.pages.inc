@@ -6,68 +6,39 @@
  */
 
 /**
- * Menu callback; publish an RSS feed.
- */
-function commentrss_handler($type = NULL, $value = NULL) {
-  // Make site the default type.
-  $type = empty($type) ? 'site' : $type;
-  // Keep site and node feeds enabled by default. The site feed could have
-  // different settings, but exposure is not relevant at this point, since
-  // we are serving the page, so it is a known URL to the client.
-  $default = (in_array($type, array('site', 'node')));
-  if (strlen($type) && variable_get('commentrss_'. $type, $default)) {
-    if (call_user_func('commentrss_feed_'. $type, $value)) {
-      return;
-    }
-  }
-  drupal_not_found();
-}
-
-/**
  * Publish a feed for all comments on the site.
  */
-function commentrss_feed_site($param = NULL) {
-  if (empty($param)) {
-    // Filter with all nodes. Only accessible if there was no param (so
-    // that we are not falling back from some specific but not matched item).
-    $items = commentrss_format_items('n.nid');
-    commentrss_format_feed($items);
-    return TRUE;
-  }
-  return FALSE;
+function commentrss_feed_site() {
+  // Filter with all nodes.
+  $items = commentrss_format_items('n.nid');
+  commentrss_format_feed($items);
 }
 
 /**
  * Publish a feed for all comments of a specified node.
  */
-function commentrss_feed_node($nid = NULL) {
-  global $base_url;
-
-  if (isset($nid) && is_numeric($nid) && ($node = node_load($nid)) && ($node->comment != COMMENT_NODE_DISABLED)) {
-    // Filter with this specific node.
-    $items = commentrss_format_items(
-      'n.nid',
-      '',
-      'n.nid = %d AND',
-      $node->nid,
-      FALSE
-    );
-    // Fill channel information based on node details.
-    $channel = array(
-      'title' => t(
-        '@site - Comments for "@title"',
-        array(
-          '@site' => check_plain(variable_get('site_name', 'Drupal')),
-          '@title' => check_plain($node->title)
-        )
-      ),
-      'description' => t('Comments for "@title"', array('@title' => $node->title)),
-      'link' => url('node/'. $node->nid, array('absolute' => TRUE)),
-    );
-    commentrss_format_feed($items, $channel);
-    return TRUE;
-  }
-  return FALSE;
+function commentrss_feed_node($node) {
+  // Filter with this specific node.
+  $items = commentrss_format_items(
+    'n.nid',
+    '',
+    'n.nid = %d AND',
+    $node->nid,
+    FALSE
+  );
+  // Fill channel information based on node details.
+  $channel = array(
+    'title' => t(
+      '@site - Comments for "@title"',
+      array(
+        '@site' => check_plain(variable_get('site_name', 'Drupal')),
+        '@title' => check_plain($node->title)
+      )
+    ),
+    'description' => t('Comments for "@title"', array('@title' => $node->title)),
+    'link' => url('node/'. $node->nid, array('absolute' => TRUE)),
+  );
+  commentrss_format_feed($items, $channel);
 }
 
 /**

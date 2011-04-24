@@ -67,12 +67,19 @@ function commentrss_menu() {
     'type' => MENU_LOCAL_TASK,
     'file' => 'commentrss.admin.inc',
   );
-  // Catch all handler for Comment RSS feeds.
+
+  // RSS callback handlers
   $items['crss'] = array(
-    'title' => '',
-    'page callback' => 'commentrss_handler',
-    'page arguments' => array(1, 2),
+    'page callback' => 'commentrss_feed_site',
     'access arguments' => array('access comments'),
+    'type' => MENU_CALLBACK,
+    'file' => 'commentrss.pages.inc',
+  );
+  $items['crss/node/%node'] = array(
+    'page callback' => 'commentrss_feed_node',
+    'page arguments' => array(2),
+    'access callback' => 'commentrss_node_feed_access',
+    'access arguments' => array(2),
     'type' => MENU_CALLBACK,
     'file' => 'commentrss.pages.inc',
   );
@@ -83,8 +90,8 @@ function commentrss_menu() {
 /**
  * Access callback; determines if the user can access a node's comment RSS.
  */
-function commentrss_node_feed_access($node) {
-  return node_access('view', $node) && $node->comment != COMMENT_NODE_DISABLED;
+function commentrss_node_feed_access($node, $check_view_access = TRUE) {
+  return $node->comment != COMMENT_NODE_DISABLED && variable_get('commentrss_node', TRUE) && (!$check_view_access || node_access('view', $node));
 }
 
 /**
@@ -125,7 +132,7 @@ function commentrss_init() {
   // Expose node feed on node view page.
   if (preg_match('%^node/\d+$%', $_GET['q'])) {
     $node = node_load(arg(1));
-    if ($node && variable_get('commentrss_node', TRUE) && commentrss_node_feed_access($node)) {
+    if ($node && commentrss_node_feed_access($node)) {
       drupal_add_feed(
         url('crss/node/'. $node->nid, array('absolute' => TRUE)),
         t('Comments for "@title"', array('@title' => $node->title))
@@ -149,17 +156,15 @@ function commentrss_init() {
  * Implementation of hook_nodeapi().
  */
 function commentrss_nodeapi(&$node, $op) {
-  if ($op == 'rss item') {
+  if ($op == 'rss item' && commentrss_node_feed_access($node, FALSE)) {
     // Add a wfw:commentRss element to node feed entries if:
-    //   node comments are enabled for the node
-    //   comment feeds for individual nodes are enabled
-    if ($node->comment != COMMENT_NODE_DISABLED && variable_get('commentrss_node', TRUE)) {
-      // The "wfw" namespace is added to each element due to a bug in node_feed().
-      // See http://drupal.org/node/157709
-      return array(array(
-        'key' => 'wfw:commentRss',
-        'attributes' => array('xmlns:wfw' => 'http://wellformedweb.org/CommentAPI/'),
-        'value' => url('crss/node/'. $node->nid, array('absolute' => TRUE))));
-    }
+    // - node comments are enabled for the node
+    // - comment feeds for individual nodes are enabled
+    // The "wfw" namespace is added to each element due to a bug in node_feed().
+    // See http://drupal.org/node/157709
+    return array(array(
+      'key' => 'wfw:commentRss',
+      'attributes' => array('xmlns:wfw' => 'http://wellformedweb.org/CommentAPI/'),
+      'value' => url('crss/node/'. $node->nid, array('absolute' => TRUE))));
   }
 }
