@@ -93,7 +93,7 @@ function commentrss_node_feed_access($node) {
 function commentrss_init() {
   // This hook gets called for offline pages and breaks the theme, so
   // skip running in that case to avoid interfering with that operation.
-  if (variable_get('site_offline', 0) || !user_access('access comments')) {
+  if (variable_get('site_offline', 0) || !user_access('access comments') || path_is_admin(current_path())) {
     return;
   }
 
