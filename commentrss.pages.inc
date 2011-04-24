@@ -79,34 +79,34 @@ function commentrss_feed_term($tid = NULL) {
  * @param $items
  *   XML fragment for the items from commentrss_format_items().
  * @param $channel
- *   Associative array of channel information. Name of tags to include
- *   with value of tag values to add.
- * @param $namespaces
- *   Associative array of namespace arguments to add. Keyed by namespace
- *   argument name to add, for example 'xmlns:dc', with the value of the
- *   namespace URI such as http://purl.org/dc/elements/1.1/ in this case.
+ *   An associative array containing title, link, description and other keys,
+ *   to be parsed by format_rss_channel() and format_xml_elements().
+ *   A list of channel elements can be found at the @link http://cyber.law.harvard.edu/rss/rss.html RSS 2.0 Specification. @endlink
+ *   The link should be an absolute URL.
  *
  * @see commentrss_format_items()
  */
-function commentrss_format_feed($items, $channel = array(), $namespaces = array()) {
-  global $base_url, $language;
+function commentrss_format_feed($items, $channel = array()) {
+  global $base_url, $language_content;
+
+  $namespaces = array('xmlns:dc' => 'http://purl.org/dc/elements/1.1/');
 
   $channel_defaults = array(
-    'version'     => '2.0',
-    'title'       => t('@site_name - Comments', array('@site_name' => variable_get('site_name', 'Drupal'))),
-    'link'        => $base_url,
+    'version' => '2.0',
+    'title' => t('@site_name - Comments', array('@site_name' => variable_get('site_name', 'Drupal'))),
+    'link' => $base_url,
     'description' => t('Comments'),
-    'language'    => $language->language
+    'language' => $language_content->language,
   );
+  $channel_extras = array_diff_key($channel, $channel_defaults);
   $channel = array_merge($channel_defaults, $channel);
-  $namespaces = array_merge(array('xmlns:dc' => 'http://purl.org/dc/elements/1.1/'), $namespaces);
 
-  $output = '<?xml version="1.0" encoding="utf-8"?>' . "\n";
-  $output .= '<rss version="' . $channel['version'] . '" xml:base="' . $base_url . '"' . drupal_attributes($namespaces) . ">\n";
-  $output .= format_rss_channel($channel['title'], $channel['link'], $channel['description'], $items, $channel['language']);
+  $output = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
+  $output .= "<rss version=\"" . $channel["version"] . "\" xml:base=\"" . $base_url . "\" " . drupal_attributes($namespaces) . ">\n";
+  $output .= format_rss_channel($channel['title'], $channel['link'], $channel['description'], $items, $channel['language'], $channel_extras);
   $output .= "</rss>\n";
 
-  drupal_set_header('Content-Type: application/rss+xml; charset=utf-8');
+  drupal_add_http_header('Content-Type', 'application/rss+xml; charset=utf-8');
   print $output;
 }
 
