@@ -90,12 +90,14 @@ function commentrss_node_feed_access($node, $check_view_access = TRUE) {
 }
 
 /**
- * Implements hook_init().
+ * Implements hook_preprocess_page().
  */
-function commentrss_init() {
+function commentrss_preprocess_page(&$variables) {
   // This hook gets called for offline pages and breaks the theme, so
   // skip running in that case to avoid interfering with that operation.
-  if (variable_get('site_offline', 0) || !user_access('access comments') || path_is_admin(current_path())) {
+  // We no longer need to check if !variable_get('site_offline', 0) since
+  // this preprocess functions is never called for offline pages.
+  if (!user_access('access comments') || path_is_admin(current_path())) {
     return;
   }
 
@@ -110,7 +112,7 @@ function commentrss_init() {
         break;
       }
     case COMMENTRSS_SITE_FRONT_AND_NODE_PAGE:
-      if (!drupal_is_front_page() || ($_GET['q'] != 'node')) {
+      if (!drupal_is_front_page() || (current_path() != 'node')) {
         // Only break if not front page and not node page.
         break;
       }
@@ -121,19 +123,11 @@ function commentrss_init() {
         url('crss', array('absolute' => TRUE)),
         t('@site - All comments', array('@site' => variable_get('site_name', 'Drupal')))
       );
+
+      // Replace the feed icons variable with our new feeds.
+      $variables['feed_icons'] = drupal_get_feeds();
       break;
   }
-
-  // Expose term feed on term view page.
-  //if (preg_match('%^taxonomy/term/\d+$%', $_GET['q']) && variable_get('commentrss_term', FALSE)) {
-  //  $term = taxonomy_get_term(arg(2));
-  //  if ($term) {
-  //    drupal_add_feed(
-  //      url('crss/term/' . $term->tid, array('absolute' => TRUE)),
-  //      t('Comments for category "@title"', array('@title' => $term->name))
-  //    );
-  //  }
-  //}
 }
 
 /**
