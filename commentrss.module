@@ -124,17 +124,6 @@ function commentrss_init() {
       break;
   }
 
-  // Expose node feed on node view page.
-  if (preg_match('%^node/\d+$%', $_GET['q'])) {
-    $node = node_load(arg(1));
-    if ($node && commentrss_node_feed_access($node)) {
-      drupal_add_feed(
-        url('crss/node/' . $node->nid, array('absolute' => TRUE)),
-        t('Comments for "@title"', array('@title' => $node->title))
-      );
-    }
-  }
-
   // Expose term feed on term view page.
   //if (preg_match('%^taxonomy/term/\d+$%', $_GET['q']) && variable_get('commentrss_term', FALSE)) {
   //  $term = taxonomy_get_term(arg(2));
@@ -151,7 +140,14 @@ function commentrss_init() {
  * Implements hook_node_view().
  */
 function commentrss_node_view($node, $view_mode = 'full', $langcode = NULL) {
-  if ($view_mode == 'rss' && commentrss_node_feed_access($node, FALSE)) {
+  if ($view_mode == 'full' && node_is_page($node) && commentrss_node_feed_access($node, FALSE)) {
+    // Expose node's comment feed on node view page.
+    drupal_add_feed(
+      url('crss/node/' . $node->nid, array('absolute' => TRUE)),
+      t('Comments for "@title"', array('@title' => $node->title))
+    );
+  }
+  elseif ($view_mode == 'rss' && commentrss_node_feed_access($node, FALSE)) {
     // Add a wfw:commentRss element to the node when viewed in a node RSS feed.
     $node->rss_elements[] = array(
       'key' => 'wfw:commentRss',
