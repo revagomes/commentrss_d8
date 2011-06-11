@@ -46,13 +46,13 @@ function commentrss_help($path, $arg) {
  */
 function commentrss_menu() {
   // Copy of menu item from system.module.
-  $items['admin/content/rss-publishing/default'] = array(
+  $items['admin/config/services/rss-publishing/default'] = array(
     'title' => 'General settings',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'file path' => drupal_get_path('module', 'system'),
   );
   // New local task on the RSS publishing settings page.
-  $items['admin/content/rss-publishing/commentrss'] = array(
+  $items['admin/config/services/rss-publishing/commentrss'] = array(
     'title' => 'Comment RSS settings',
     'description' => 'Configure RSS feeds for comments.',
     'page callback' => 'drupal_get_form',
