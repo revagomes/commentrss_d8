@@ -157,9 +157,7 @@ function commentrss_node_view($node, $view_mode = 'full', $langcode = NULL) {
       'key' => 'wfw:commentRss',
       'value' => url('crss/node/' . $node->nid, array('absolute' => TRUE)),
     );
-    $node->rss_namespaces[] = array(
-      'xmlns:wfw' => 'http://wellformedweb.org/CommentAPI/',
-    );
+    $node->rss_namespaces['xmlns:wfw'] = 'http://wellformedweb.org/CommentAPI/';
   }
 }
 
