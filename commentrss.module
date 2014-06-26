@@ -8,22 +8,22 @@
 /**
  * Disable site comment feed.
  */
-define('COMMENTRSS_SITE_DISABLED', 0);
+const COMMENTRSS_SITE_DISABLED = 0;
 
 /**
  * Expose site feed on front page only.
  */
-define('COMMENTRSS_SITE_FRONT_PAGE', 1);
+const COMMENTRSS_SITE_FRONT_PAGE = 1;
 
 /**
  * Expose site feed on front page and main content (/node) page too.
  */
-define('COMMENTRSS_SITE_FRONT_AND_NODE_PAGE', 2);
+const COMMENTRSS_SITE_FRONT_AND_NODE_PAGE = 2;
 
 /**
  * Expose site feed on all pages.
  */
-define('COMMENTRSS_SITE_ALL_PAGES', 3);
+const COMMENTRSS_SITE_ALL_PAGES = 3;
 
 // == Core hooks ===============================================================
 
@@ -96,7 +96,7 @@ function commentrss_entity_info_alter(&$info) {
  * Access callback; determines if the user can access a node's comment RSS.
  */
 function commentrss_node_feed_access($node, $check_view_access = TRUE) {
-  return $node->comment != COMMENT_NODE_HIDDEN && variable_get('commentrss_node', TRUE) && user_access('access comments') && (!$check_view_access || node_access('view', $node));
+  return $node->comment != COMMENT_NODE_HIDDEN && \Drupal::config('commentrss.settings')->get('node') && user_access('access comments') && (!$check_view_access || node_access('view', $node));
 }
 
 /**
@@ -112,7 +112,7 @@ function commentrss_preprocess_page(&$variables) {
   }
 
   // Expose site feed based on settings.
-  switch (variable_get('commentrss_site', COMMENTRSS_SITE_FRONT_PAGE)) {
+  switch (\Drupal::config('commentrss.settings')->get('site')) {
     case COMMENTRSS_SITE_DISABLED:
       // No comment RSS feed for site.
       break;
@@ -131,7 +131,7 @@ function commentrss_preprocess_page(&$variables) {
       // to this point. We should expose the feed in any case.
       drupal_add_feed(
         url('crss', array('absolute' => TRUE)),
-        t('@site - All comments', array('@site' => variable_get('site_name', 'Drupal')))
+        t('@site - All comments', array('@site' => \Drupal::config('system.site')->get('name')))
       );
 
       // Replace the feed icons variable with our new feeds.
@@ -217,7 +217,7 @@ function commentrss_feed(array $cids = NULL, array $channel = array()) {
     $query->addTag('comment_access');
     $query->orderBy('c.created', 'DESC');
     $query->orderBy('c.cid', 'DESC');
-    $query->range(0, variable_get('feed_default_items', 10));
+    $query->range(0, \Drupal::config('commentrss.settings')->get('feed_default_items'));
     $cids = $query->execute()->fetchCol();
   }
 
@@ -280,7 +280,7 @@ function commentrss_feed(array $cids = NULL, array $channel = array()) {
 
   $channel_defaults = array(
     'version' => '2.0',
-    'title' => t('Comments for @site_name', array('@site_name' => variable_get('site_name', 'Drupal'))),
+    'title' => t('Comments for @site_name', array('@site_name' => \Drupal::config('system.site')->get('name'))),
     'link' => $base_url,
     'description' => t('Comments'),
     'language' => $language_content->language,

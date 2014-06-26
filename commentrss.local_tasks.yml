@@ -1,0 +1,11 @@
+default:
+  route_name: ''
+  parent_id: fixme
+  base_route: fixme
+  title: 'General settings'
+commentrss.admin_settings:
+  route_name: commentrss.admin_settings
+  parent_id: fixme
+  base_route: fixme
+  title: 'Comment RSS settings'
+  weight: 10

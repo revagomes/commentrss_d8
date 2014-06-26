@@ -23,12 +23,12 @@ function commentrss_node_feed($node) {
   $query->condition('c.status', COMMENT_PUBLISHED);
   $query->addTag('comment_access');
   $query->orderBy('c.created', 'DESC');
-  $query->range(0, variable_get('feed_default_items', 10));
+  $query->range(0, \Drupal::config('commentrss.settings')->get('feed_default_items'));
   $cids = $query->execute()->fetchCol();
 
   // Fill channel information based on node details.
   $channel['title'] = t('@site - Comments for "@title"', array(
-    '@site' => variable_get('site_name', 'Drupal'),
+    '@site' => \Drupal::config('system.site')->get('name'),
     '@title' => $node->title,
   ));
   $channel['description'] = t('Comments for "@title"', array('@title' => $node->title));

@@ -10,9 +10,9 @@
  */
 function commentrss_uninstall() {
   // Delete all variables.
-  variable_del('commentrss_site');
-  variable_del('commentrss_node');
-  variable_del('commentrss_term');
+  \Drupal::config('commentrss.settings')->clear('site')->save();
+  \Drupal::config('commentrss.settings')->clear('node')->save();
+  \Drupal::config('commentrss.settings')->clear('term')->save();
 }
 
 /**

@@ -1,0 +1,17 @@
+commentrss.admin_settings:
+  path: /admin/config/services/rss-publishing/commentrss
+  defaults:
+    _title: 'Comment RSS settings'
+    _content: drupal_get_form
+  requirements:
+    _permission: 'administer site configuration'
+commentrss.feed:
+  path: /crss
+  defaults:
+    _content: commentrss_feed
+  requirements:
+    _permission: 'access comments'
+commentrss.node_feed:
+  path: '/crss/node/{node}'
+  defaults:
+    _content: commentrss_node_feed

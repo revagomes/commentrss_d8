@@ -19,19 +19,19 @@ function commentrss_admin_settings() {
       COMMENTRSS_SITE_ALL_PAGES => t('Enabled, expose on all pages'),
     ),
     '#description' => t('Where should the site comment feed be exposed, if at all enabled. If enabled, feed will be accessible at @url.', array('@url' => url('crss', array('absolute' => TRUE)))),
-    '#default_value' => variable_get('commentrss_site', COMMENTRSS_SITE_FRONT_PAGE),
+    '#default_value' => \Drupal::config('commentrss.settings')->get('site'),
   );
   $form['commentrss_node'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable individual comment feeds for each post on the website'),
     '#description' => t('Feeds will be accessible on @url type of URLs.', array('@url' => url('crss/node/...', array('absolute' => TRUE)))),
-    '#default_value' => variable_get('commentrss_node', TRUE),
+    '#default_value' => \Drupal::config('commentrss.settings')->get('node'),
   );
   $form['commentrss_term'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable individual comment feeds for each taxonomy term listing on the website'),
     '#description' => t('Feeds will be accessible at @url type of URLs. Only supports one term, no composition.', array('@url' => url('crss/term/...', array('absolute' => TRUE)))),
-    '#default_value' => variable_get('commentrss_term', FALSE),
+    '#default_value' => \Drupal::config('commentrss.settings')->get('term'),
     '#access' => FALSE,
   );
 
