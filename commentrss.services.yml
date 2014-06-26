@@ -1,4 +1,0 @@
-services:
-  commentrss.config_form:
-    class: Drupal\commentrss\Form\CommentrssAdminForm
-    arguments: ['@url_generator']
