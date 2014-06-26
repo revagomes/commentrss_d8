@@ -1,5 +1,0 @@
-name = Comment RSS
-description = Provides RSS feeds for comments
-core = 7.x
-dependencies[] = comment
-configure = admin/config/services/rss-publishing/commentrss
