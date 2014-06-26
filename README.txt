@@ -18,16 +18,16 @@ listed in reversed time order.
 
 Installation
 ------------------------------------------------------------------------------
- 
+
  Required:
   - Copy the module files to sites/all/modules/
   - Enable the module as usual from Drupal's admin pages.
-  
+
  Optional:
   - Configure the module on "Administer" >> "Content management" >>
     "RSS publishing" >> "Comment RSS settings" if the defaults are not
     fitting for you.
- 
+
 
 Credits / Contact
 ------------------------------------------------------------------------------
@@ -35,3 +35,11 @@ Credits / Contact
 This module was created and is currently maintainer by Gabor Hojtsy
 (http://drupal.org/user/4166). Moshe Weitzman provided several fixes
 and improvements, and Chris Cook maintained it for quite some time as well.
+
+Ported to Drupal 8 by:
+
+ * Alan Felthes Campos (http://drupal.org/u/alanfelthes)
+ * Andresa Moura (http://drupal.org/user/2933911)
+ * Juliano M. Coimbra (https://www.drupal.org/user/808392)
+ * Lucas Arruda (https://www.drupal.org/u/larruda)
+ * Renato Vasconcellos Gomes (http://drupal.org/u/revagomes)
