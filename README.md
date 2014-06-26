@@ -1,5 +1,5 @@
 Drupal commentrss.module README.txt
-==============================================================================
+====
 
 This module provides RSS feeds for comments. This is useful for allowing
 readers to subscribe to comments for a blog post, article, or forum topic.
@@ -17,7 +17,7 @@ listed in reversed time order.
 
 
 Installation
-------------------------------------------------------------------------------
+----
 
  Required:
   - Copy the module files to modules/
@@ -30,13 +30,13 @@ Installation
 
 
 Credits / Contact
-------------------------------------------------------------------------------
+----
 
 This module was created and is currently maintainer by Gabor Hojtsy
 (http://drupal.org/user/4166). Moshe Weitzman provided several fixes
 and improvements, and Chris Cook maintained it for quite some time as well.
 
-Ported to Drupal 8 by:
+Ported to *Drupal 8* by:
 
  * Alan Felthes Campos (http://drupal.org/u/alanfelthes)
  * Juliano M. Coimbra (http://www.drupal.org/user/808392)
