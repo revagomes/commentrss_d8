@@ -1,4 +1,4 @@
-id: comment.rss
+id: commentrss.rss
 label: 'Comment RSS'
 status: true
 cache: true
