@@ -1,6 +1,10 @@
 id: comment.rss
 label: 'Comment RSS'
+<<<<<<< HEAD
 status: false
+=======
+status: true
+>>>>>>> ea303b6e642c4407f95bf89d3319f341ae9cfc5d
 cache: true
 targetEntityType: comment
 dependencies:
