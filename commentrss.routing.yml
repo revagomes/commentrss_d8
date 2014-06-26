@@ -5,13 +5,3 @@ commentrss.admin_settings:
     _form: 'Drupal\commentrss\Form\CommentrssAdminForm'
   requirements:
     _permission: 'administer site configuration'
-commentrss.feed:
-  path: /crss
-  defaults:
-    _content: commentrss_feed
-  requirements:
-    _permission: 'access comments'
-commentrss.node_feed:
-  path: '/crss/node/{node}'
-  defaults:
-    _content: commentrss_node_feed

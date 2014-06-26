@@ -14,10 +14,3 @@ function commentrss_uninstall() {
   \Drupal::config('commentrss.settings')->clear('node')->save();
   \Drupal::config('commentrss.settings')->clear('term')->save();
 }
-
-/**
- * Empty update since menu items have changed.
- */
-function commentrss_update_6200() {
-  return array();
-}
