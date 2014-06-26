@@ -45,47 +45,6 @@ function commentrss_help($route_name, Request $request) {
 }
 
 /**
- * Implements hook_menu().
- */
-function commentrss_menu() {
-  // Copy of menu item from system.module.
-  $items['admin/config/services/rss-publishing/default'] = array(
-    'title' => 'General settings',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'file path' => drupal_get_path('module', 'system'),
-  );
-  // New local task on the RSS publishing settings page.
-  $items['admin/config/services/rss-publishing/commentrss'] = array(
-    'title' => 'Comment RSS settings',
-    'description' => 'Configure RSS feeds for comments.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('commentrss_admin_settings'),
-    'access arguments' => array('administer site configuration'),
-    'weight' => 10,
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'commentrss.admin.inc',
-  );
-
-  // RSS callback handlers
-  $items['crss'] = array(
-    'page callback' => 'commentrss_feed',
-    'page arguments' => array(NULL, array()),
-    'access arguments' => array('access comments'),
-    'type' => MENU_CALLBACK,
-  );
-  $items['crss/node/%node'] = array(
-    'page callback' => 'commentrss_node_feed',
-    'page arguments' => array(2),
-    'access callback' => 'commentrss_node_feed_access',
-    'access arguments' => array(2),
-    'type' => MENU_CALLBACK,
-    'file' => 'commentrss.pages.inc',
-  );
-
-  return $items;
-}
-
-/**
  * Access callback; determines if the user can access a node's comment RSS.
  */
 function commentrss_node_feed_access($node, $check_view_access = TRUE) {
