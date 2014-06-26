@@ -20,11 +20,11 @@ Installation
 ------------------------------------------------------------------------------
 
  Required:
-  - Copy the module files to sites/all/modules/
+  - Copy the module files to modules/
   - Enable the module as usual from Drupal's admin pages.
 
  Optional:
-  - Configure the module on "Administer" >> "Content management" >>
+  - Configure the module on "Manage" >> "Configuration" >>
     "RSS publishing" >> "Comment RSS settings" if the defaults are not
     fitting for you.
 
@@ -39,7 +39,6 @@ and improvements, and Chris Cook maintained it for quite some time as well.
 Ported to Drupal 8 by:
 
  * Alan Felthes Campos (http://drupal.org/u/alanfelthes)
- * Andresa Moura (http://drupal.org/user/2933911)
- * Juliano M. Coimbra (https://www.drupal.org/user/808392)
- * Lucas Arruda (https://www.drupal.org/u/larruda)
+ * Juliano M. Coimbra (http://www.drupal.org/user/808392)
+ * Lucas Arruda (http://www.drupal.org/u/larruda)
  * Renato Vasconcellos Gomes (http://drupal.org/u/revagomes)
