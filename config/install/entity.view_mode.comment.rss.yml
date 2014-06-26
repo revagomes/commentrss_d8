@@ -1,7 +1,6 @@
 id: commentrss.rss
-label: 'Comment RSS'
+label: Comment RSS
 status: true
-cache: true
 targetEntityType: comment
 dependencies:
   module:
