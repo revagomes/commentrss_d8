@@ -45,7 +45,7 @@ class CommentrssAdminForm extends ConfigFormBase {
             '#access' => FALSE,
         );
 
-        return $form;
+        return parent::buildForm($form, $form_state);
     }
 
 

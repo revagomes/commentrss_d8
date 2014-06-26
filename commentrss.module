@@ -8,6 +8,9 @@
 /**
  * Disable site comment feed.
  */
+
+use Symfony\Component\HttpFoundation\Request;
+
 const COMMENTRSS_SITE_DISABLED = 0;
 
 /**
@@ -30,10 +33,10 @@ const COMMENTRSS_SITE_ALL_PAGES = 3;
 /**
  * Implements hook_help().
  */
-function commentrss_help($path, $arg) {
+function commentrss_help($route_name, Request $request) {
   $output = '';
-  switch ($path) {
-    case 'admin/help#commentrss':
+  switch ($route_name) {
+    case 'help.page.commentrss':
       $output = '<p>' . t('The commentrss module provides RSS feeds for comments. Comment feeds are published on pages which often also provide a feed of nodes. Some types of comment feeds may be disabled if they are not needed.') . '</p>';
       $output .= '<p>' . t('If comment feeds are enabled for individual nodes then a "wfw:commentRss" element is added to node feeds (based on <a href="@wfw">the Well Formed Web Comment API</a> specification) so that aggregators may discover the corresponding comment feed.', array('@wfw' => 'http://wellformedweb.org/CommentAPI/')) . '</p>';
       break;
