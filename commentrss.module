@@ -86,16 +86,6 @@ function commentrss_menu() {
 }
 
 /**
- * Implements hook_entity_info_alter().
- */
-function commentrss_entity_info_alter(&$info) {
-  $info['comment']['view modes']['rss'] = array(
-    'label' => t('RSS'),
-    'custom settings' => FALSE,
-  );
-}
-
-/**
  * Access callback; determines if the user can access a node's comment RSS.
  */
 function commentrss_node_feed_access($node, $check_view_access = TRUE) {
