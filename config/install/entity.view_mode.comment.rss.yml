@@ -1,0 +1,8 @@
+id: comment.rss
+label: 'Comment RSS'
+status: false
+cache: true
+targetEntityType: comment
+dependencies:
+  module:
+    - comment
