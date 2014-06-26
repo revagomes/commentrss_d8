@@ -89,13 +89,18 @@ function commentrss_menu() {
  * Access callback; determines if the user can access a node's comment RSS.
  */
 function commentrss_node_feed_access($node, $check_view_access = TRUE) {
-  return $node->comment != COMMENT_NODE_HIDDEN && \Drupal::config('commentrss.settings')->get('node') && user_access('access comments') && (!$check_view_access || node_access('view', $node));
+
+  $config = \Drupal::config('commentrss.settings');
+
+  return $node->comment != COMMENT_NODE_HIDDEN && $config->get('node') && user_access('access comments') && (!$check_view_access || node_access('view', $node));
 }
 
 /**
  * Implements hook_preprocess_page().
  */
 function commentrss_preprocess_page(&$variables) {
+
+  $config = \Drupal::config('commentrss.settings');
   // This hook gets called for offline pages and breaks the theme, so
   // skip running in that case to avoid interfering with that operation.
   // We no longer need to check if !variable_get('site_offline', 0) since
@@ -105,7 +110,7 @@ function commentrss_preprocess_page(&$variables) {
   }
 
   // Expose site feed based on settings.
-  switch (\Drupal::config('commentrss.settings')->get('site')) {
+  switch ($config->get('site')) {
     case COMMENTRSS_SITE_DISABLED:
       // No comment RSS feed for site.
       break;
@@ -120,11 +125,12 @@ function commentrss_preprocess_page(&$variables) {
         break;
       }
     case COMMENTRSS_SITE_ALL_PAGES:
+      $system_conf = \Drupal::config('system.site');
       // Either we need to expose for all pages, or code was falling through
       // to this point. We should expose the feed in any case.
       drupal_add_feed(
         url('crss', array('absolute' => TRUE)),
-        t('@site - All comments', array('@site' => \Drupal::config('system.site')->get('name')))
+        t('@site - All comments', array('@site' => $system_conf->get('name')))
       );
 
       // Replace the feed icons variable with our new feeds.
