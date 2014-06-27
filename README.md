@@ -1,5 +1,5 @@
-Drupal commentrss.module README.txt
-====
+Drupal commentrss.module README.md
+----
 
 This module provides RSS feeds for comments. This is useful for allowing
 readers to subscribe to comments for a blog post, article, or forum topic.
