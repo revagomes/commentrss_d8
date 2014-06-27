@@ -61,11 +61,12 @@ function commentrss_preprocess_page(&$variables) {
 
   $config = \Drupal::config('commentrss.settings');
   $is_admin_path = \Drupal::service('router.admin_context')->isAdminRoute();
+  $has_permission = \Drupal::currentUser()->hasPermission('access comments');
   // This hook gets called for offline pages and breaks the theme, so
   // skip running in that case to avoid interfering with that operation.
   // We no longer need to check if !variable_get('site_offline', 0) since
   // this preprocess functions is never called for offline pages.
-  if (!user_access('access comments') || $is_admin_path) {
+  if (!$has_permission || $is_admin_path) {
     return;
   }
 
@@ -89,8 +90,8 @@ function commentrss_preprocess_page(&$variables) {
       // Either we need to expose for all pages, or code was falling through
       // to this point. We should expose the feed in any case.
       drupal_add_feed(
-        url('crss', array('absolute' => TRUE)),
-        t('@site - All comments', array('@site' => $system_conf->get('name')))
+        $this->url('view.commentrss.feed_1', array('absolute' => TRUE)),
+        $this->t('@site - All comments', array('@site' => $system_conf->get('name')))
       );
 
       // Replace the feed icons variable with our new feeds.
